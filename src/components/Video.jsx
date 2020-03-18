@@ -1,13 +1,9 @@
 
-import * as firebase from 'firebase'
-import firebaseConfig from "../firebaseConfig.js"
-import React, { useState, useEffect } from 'react';
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-firebase.analytics();
+import React, { useState, useEffect, useRef, useContext } from 'react';
+import Context from '../context/Context'
 
 const Video = () => {
+    const context = useContext(Context)
 
     const configuration = {
         iceServers: [
@@ -24,18 +20,58 @@ const Video = () => {
     let peerConnection = null;
     const [localStreamState, setlocalStreamState] = useState(null)
     const [remoteStreamState, setRemoteStreamState] = useState(null)
+    const [chatChannel, setChatChannel] = useState("derpderp")
+    const [chatText, setChatText] = useState("")
+    const [allChatState, setAllChatState] = useState([])
+    const allChatRef = useRef([])
 
     // let roomDialog = null;
     let roomId = null;
 
+    const onChannelOpen = event => {
+    }
+    const onChannelClose = event => {
+    }
+    const onChannelMessage = event => {
+        let chatObj = JSON.parse(event.data)
+        console.log("Remote says:", chatObj.text)
+        console.log("chat state pre: ", allChatRef.current)
+        console.log("chatChannel: ", chatChannel)
+        let temp = [...allChatRef.current]
+        temp.push(chatObj)
+        allChatRef.current = temp
+        setAllChatState(allChatRef.current)
+    }
 
-    async function createRoom() {
+    const sendChat = e => {
+        console.log("Local (I) says:", chatText)
+        console.log("chat state pre: ", allChatRef.current)
+        console.log("chatChannel: ", chatChannel)
+        e.preventDefault()
+
+        let chatObj = {sender: context.name, text: chatText}
+        chatChannel.send(JSON.stringify(chatObj))
+        setChatText("")
+
+        let temp = [...allChatRef.current]
+        temp.push(chatObj)
+        allChatRef.current = temp
+        setAllChatState(allChatRef.current)
+    }
+
+    const createRoom = async () => {
         document.querySelector('#createBtn').disabled = true;
         document.querySelector('#joinBtn').disabled = true;
-        const db = firebase.firestore();
+        // const db = firebase.firestore();
 
         console.log('Create PeerConnection with configuration: ', configuration);
         peerConnection = new RTCPeerConnection(configuration);
+
+        let channel = peerConnection.createDataChannel("sendChannel");
+        channel.onmessage = onChannelMessage;
+        channel.onopen = onChannelOpen;
+        channel.onclose = onChannelClose;
+        setChatChannel(channel)
 
         registerPeerConnectionListeners();
 
@@ -54,7 +90,7 @@ const Video = () => {
                 sdp: offer.sdp,
             },
         };
-        const roomRef = await db.collection('rooms').add(roomWithOffer);
+        const roomRef = await context.db.collection('rooms').add(roomWithOffer);
         roomId = roomRef.id;
         console.log(`New room created with SDP offer. Room ID: ${roomRef.id}`);
         document.querySelector(
@@ -106,7 +142,7 @@ const Video = () => {
         // Listen for remote ICE candidates above
     }
 
-    function joinRoom() {
+    const joinRoom = () => {
         document.querySelector('#createBtn').disabled = true;
         document.querySelector('#joinBtn').disabled = true;
 
@@ -121,15 +157,25 @@ const Video = () => {
         // roomDialog.open();
     }
 
-    async function joinRoomById(roomId) {
-        const db = firebase.firestore();
-        const roomRef = db.collection('rooms').doc(`${roomId}`);
+    const receiveChannelCallback = event => {
+        let channel = event.channel;
+        channel.onmessage = onChannelMessage;
+        channel.onopen = onChannelOpen;
+        channel.onclose = onChannelClose;
+        setChatChannel(channel)
+    }
+
+    const joinRoomById = async (roomId) => {
+        // const db = firebase.firestore();
+        const roomRef = context.db.collection('rooms').doc(`${roomId}`);
         const roomSnapshot = await roomRef.get();
         console.log('Got room:', roomSnapshot.exists);
 
         if (roomSnapshot.exists) {
             console.log('Create PeerConnection with configuration: ', configuration);
             peerConnection = new RTCPeerConnection(configuration);
+            peerConnection.ondatachannel = receiveChannelCallback;
+
             registerPeerConnectionListeners();
             localStreamState.getTracks().forEach(track => {
                 peerConnection.addTrack(track, localStreamState);
@@ -186,7 +232,7 @@ const Video = () => {
         }
     }
 
-    async function openUserMedia(e) {
+    const openUserMedia = async (e) => {
         const stream = await navigator.mediaDevices.getUserMedia(
             { video: true, audio: true });
         document.querySelector('#localVideo').srcObject = stream;
@@ -202,7 +248,7 @@ const Video = () => {
         document.querySelector('#hangupBtn').disabled = false;
     }
 
-    async function hangUp(e) {
+    const hangUp = async (e) => {
         const tracks = document.querySelector('#localVideo').srcObject.getTracks();
         tracks.forEach(track => {
             track.stop();
@@ -226,8 +272,8 @@ const Video = () => {
 
         // Delete room on hangup
         if (roomId) {
-            const db = firebase.firestore();
-            const roomRef = db.collection('rooms').doc(roomId);
+            // const db = firebase.firestore();
+            const roomRef = context.db.collection('rooms').doc(roomId);
             const calleeCandidates = await roomRef.collection('calleeCandidates').get();
             calleeCandidates.forEach(async candidate => {
                 await candidate.delete();
@@ -242,7 +288,7 @@ const Video = () => {
         document.location.reload(true);
     }
 
-    function registerPeerConnectionListeners() {
+    const registerPeerConnectionListeners = () => {
         peerConnection.addEventListener('icegatheringstatechange', () => {
             console.log(
                 `ICE gathering state changed: ${peerConnection.iceGatheringState}`);
@@ -265,7 +311,7 @@ const Video = () => {
     return (
 
         <div>
-            <h1>♥ Welcome to Secret Video Chat ♥</h1>
+            <h1>♥ Welcome to Secret Video Chat, {context.name}! ♥</h1>
             <div id="buttons">
                 {localStreamState ?
                     <div>
@@ -273,6 +319,24 @@ const Video = () => {
                         <button onClick={createRoom} id="createBtn">Create Room</button>
                         <button onClick={joinRoom} id="joinBtn">Join Room</button>
                         <button onClick={hangUp} id="hangupBtn">Hang Up</button>
+
+                        <div>
+                            {allChatState.map((item, index) => (
+                                <div key={index}>
+                                    <p>{item.sender} says:</p>
+                                    <p>{item.text}</p>
+                                </div>
+                            ))
+
+                            }
+                        </div>
+
+
+                        <form onSubmit={sendChat}>
+                            <input type="text" onChange={e => setChatText(e.target.value)} value={chatText} />
+                            <button type="submit"></button>
+                        </form>
+
                         <div
                             id="room-dialog"
                             role="alertdialog"
@@ -303,6 +367,7 @@ const Video = () => {
                         <button disabled onClick={createRoom} id="createBtn">Create Room</button>
                         <button disabled onClick={joinRoom} id="joinBtn">Join Room</button>
                         <button disabled onClick={hangUp} id="hangupBtn">Hang Up</button>
+                        <text disabled onClick={sendChat}></text>
                     </div>
                 }
             </div>
