@@ -49,7 +49,7 @@ const Video = () => {
         console.log("chatChannel: ", chatChannel)
         e.preventDefault()
 
-        let chatObj = {sender: context.name, text: chatText}
+        let chatObj = { sender: context.name, text: chatText }
         chatChannel.send(JSON.stringify(chatObj))
         setChatText("")
 
@@ -322,9 +322,20 @@ const Video = () => {
 
                         <div>
                             {allChatState.map((item, index) => (
+
+
                                 <div key={index}>
-                                    <p>{item.sender} says:</p>
-                                    <p>{item.text}</p>
+                                    {item.sender === context.name ?
+                                        <div>
+                                            <p style={{ color: 'red' }}>{item.sender} (You) says:</p>
+                                            <p style={{ color: 'red' }}>{item.text}</p>
+                                        </div>
+                                        :
+                                        <div>
+                                            <p>{item.sender} says:</p>
+                                            <p>{item.text}</p>
+                                        </div>
+                                    }
                                 </div>
                             ))
 
@@ -334,7 +345,7 @@ const Video = () => {
 
                         <form onSubmit={sendChat}>
                             <input type="text" onChange={e => setChatText(e.target.value)} value={chatText} />
-                            <button type="submit"></button>
+                            <button type="submit">Send</button>
                         </form>
 
                         <div

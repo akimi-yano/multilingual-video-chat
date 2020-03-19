@@ -4,8 +4,8 @@ import {Router} from '@reach/router'
 import NameForm from './components/NameForm'
 import Video from './components/Video'
 import DBWrapper from './components/DBWrapper';
-
-
+import Rooms from './components/Rooms';
+import Map from './components/Map'
 
 
 function App() {
@@ -17,6 +17,8 @@ function App() {
       <Router>
       <NameForm path="/"/>
       <Video path="/chat"/>
+      <Rooms path="/rooms"/>
+      <Map path="/map" />
       </Router>
       </DBWrapper>
     </div>

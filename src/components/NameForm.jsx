@@ -19,7 +19,7 @@ const NameForm = () => {
             <h2>What's your name?</h2>
             <form onSubmit={onSubmitHandler}>
                 <input onChange={onChangeHandler} type="text" value={formState} />
-                <button type="submit"></button>
+                <button type="submit">Start</button>
             </form>
             
         </div>
