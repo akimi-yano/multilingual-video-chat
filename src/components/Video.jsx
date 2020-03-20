@@ -2,6 +2,7 @@
 import React, { useState, useRef, useContext } from 'react';
 import Context from '../context/Context'
 
+// WebRTC peer connection configuration
 const configuration = {
     iceServers: [
         {
@@ -14,106 +15,106 @@ const configuration = {
     iceCandidatePoolSize: 10,
 };
 
-const Video = () => {
-    let pc
-    // TODO see if this works
-    let makingOffer
+// Keep WebRTC goodies in global scope
+let pc = new RTCPeerConnection(configuration)
+let makingOffer = false
+let polite = false
+let ignoreOffer = false
 
+// 
+let writeRoom = null
+let readRoom = null
+
+const Video = () => {
     const context = useContext(Context)
 
-    const [channel, setChannel] = useState(null)
-    const [chatText, setChatText] = useState("")
-    const [chatLog, setChatLog] = useState([])
-    const chatLogRef = useRef([])
+    const [writeRoomState, setWriteRoomState] = useState(null)
+    const [readRoomState, setReadRoomState] = useState(null)
 
-    const roomIdRef = useRef(null)
-    const [roomId, setRoomId] = useState(null)
-
-    const [localStream, setLocalStream] = useState(null)
-    const [remoteStream, setRemoteStream] = useState(null)
-
-    const [ignoreOffer, setIgnoreOffer] = useState(false)
-    const [polite, setPolite] = useState(false)
-
-    const onChannelMessage = event => {
-        let chatObj = JSON.parse(event.data)
-        let temp = [
-            ...chatLogRef.current,
-            chatObj
-        ]
-        chatLogRef.current = temp
-        setChatLog(chatLogRef.current)
-    }
-
-    const receiveChannelCallback = event => {
-        let ch = event.channel;
-        ch.onmessage = onChannelMessage;
-        setChannel(ch)
-    }
-
-    const sendChat = e => {
-        e.preventDefault()
-
-        let chatObj = { sender: context.name, text: chatText }
-        channel.send(JSON.stringify(chatObj))
-        setChatText("")
-
-        let temp = [
-            ...chatLogRef.current,
-            chatObj
-        ]
-        chatLogRef.current = temp
-        setChatLog(chatLogRef.current)
-    }
+    // use refs for video stream as srcObject cannot be set by using states
+    const localVideoRef = useRef(null)
+    const remoteVideoRef = useRef(null)
 
     const initializePeerConnection = (pc) => {
-
-        let ch = pc.createDataChannel("sendChannel");
-        ch.onmessage = onChannelMessage;
-        setChannel(ch)
-
-        pc.ondatachannel = receiveChannelCallback;
-
         registerPeerConnectionListeners(pc);
 
-        makingOffer = false;
         pc.onnegotiationneeded = () => {
+            console.log("negotiation needed!")
             makingOffer = true;
             pc.setLocalDescription()
                 .then(() => {
+                    console.log('LocalDescription: ', pc.localDescription)
                     const description = pc.localDescription.toJSON()
-                    return context.db.collection('rooms').doc(roomIdRef.current).update({description})
+                    return context.db.collection('rooms').doc(writeRoom).update({description})
                 })
+                .finally(() => makingOffer = false)
         };
 
-        pc.onicecandidate = event => {
+        pc.addEventListener('icecandidate', event => {
+            console.log('candidate: ', event.candidate)
             if (event.candidate) {
-                context.db.collection('rooms').doc(roomIdRef.current).collection('candidates').add(event.candidate.toJSON());
+                context.db.collection('rooms').doc(writeRoom).collection('candidates').add(event.candidate.toJSON());
             }
         }
+        )
 
-        context.db.collection('rooms').doc(roomIdRef.current).onSnapshot(snapshot => {
+        remoteVideoRef.current.srcObject = new MediaStream();
+
+        pc.addEventListener('track', event => {
+            console.log('Got remote track:', event.streams[0]);
+            event.streams[0].getTracks().forEach(track => {
+                console.log('Add a track to the remoteStream:', track);
+                remoteVideoRef.current.srcObject.addTrack(track);
+            });
+        });
+    }
+
+    const initializeWriteRoomOnSnapshots = (pc) => {
+        context.db.collection('rooms').doc(writeRoom).onSnapshot(snapshot => {
+            if (snapshot.data().readRoom && !readRoom) {
+                readRoom = snapshot.data().readRoom
+                console.log("received write snapshot: ", snapshot.data())
+                setReadRoomState(readRoom)
+                initializeReadRoomOnSnapshots(pc)
+            }
+        })
+        
+    }
+
+    const initializeReadRoomOnSnapshots = (pc) => {
+        context.db.collection('rooms').doc(readRoom).onSnapshot(snapshot => {
+            console.log('room snapshot: ', snapshot.data())
+
             let description = snapshot.data().description
             const offerCollision = (description.type == "offer") &&
                 (makingOffer || pc.signalingState != "stable");
 
-            setIgnoreOffer(!polite && offerCollision)
+            ignoreOffer = !polite && offerCollision
             if (ignoreOffer) {
                 return;
             }
 
-            pc.setRemoteDescription(description)
+            console.log('setting RemoteDescription: ', description)
+            pc.setRemoteDescription(new RTCSessionDescription((description)))
             .then(() => {
                 if (description.type == "offer") {
                     pc.setLocalDescription()
-                    .then(description => {
-                        return context.db.collection('rooms').doc(roomIdRef.current).update({description})
+                    .then(() => {
+                        console.log('LocalDescription: ', pc.localDescription)
+                        let description = pc.localDescription.toJSON()
+                        return context.db.collection('rooms').doc(writeRoom).update({description})
                     })
                 }
             })
         })
 
-        context.db.collection('rooms').doc(roomIdRef.current).collection('candidates').onSnapshot(snapshot => {
+        context.db.collection('rooms').doc(readRoom).collection('candidates').onSnapshot(snapshot => {
+            // ignore your own writes
+            let myWrite = snapshot.metadata.hasPendingWrites ? true : false;
+            if (myWrite) {
+                return
+            }
+
             snapshot.docChanges().forEach(change => {
                 if (change.type === "added") {
                     let candidate = change.doc.data()
@@ -125,34 +126,50 @@ const Video = () => {
 
     const createRoom = () => {
         // TODO better politeness
-        setPolite(true)
-        pc = new RTCPeerConnection(configuration)
+        polite = true
 
-        // need to create offer manually the first time
-        let description
+        let offer
         pc.createOffer()
-        .then(offer => {
-            description = offer.toJSON()
+        .then(offerObj => {
+            offer = offerObj
+            let description = offer.toJSON()
             return context.db.collection('rooms').add({description})
         })
-        .then(roomRef => {
-            console.log('created room: ', roomRef.id)
-            roomIdRef.current = roomRef.id
-            setRoomId(roomIdRef.current)
+        .then(roomSnapshot => {
+            writeRoom = roomSnapshot.id
+            setWriteRoomState(writeRoom)
 
             initializePeerConnection(pc)
-            pc.setLocalDescription({description})
+            initializeWriteRoomOnSnapshots(pc)
+            pc.setLocalDescription(offer)
+        })
+        .then(() => {
+            console.log('LocalDescription: ', pc.localDescription)
         })
     }
 
     const joinRoom = () => {
-        context.db.collection('rooms').doc(roomIdRef.current).get()
+        context.db.collection('rooms').doc(readRoom).get()
         .then(roomSnapshot => {
-            if (roomSnapshot.exists) {
-                pc = new RTCPeerConnection(configuration)
-                pc.setLocalDescription(roomSnapshot.data())
-                initializePeerConnection(pc)
-            }
+            initializePeerConnection(pc)
+            let offer = roomSnapshot.data().description
+            console.log('setting RemoteDescription: ', offer)
+            return pc.setRemoteDescription(new RTCSessionDescription((offer)))
+        })
+        // .then(() => pc.createAnswer())
+        .then(() => pc.setLocalDescription())
+        .then(() => {
+            console.log('LocalDescription: ', pc.localDescription)
+            let description = pc.localDescription.toJSON()
+            return context.db.collection('rooms').add({description})
+        })
+        .then((roomSnapshot) => {
+            writeRoom = roomSnapshot.id
+            setWriteRoomState(writeRoom)
+            initializeReadRoomOnSnapshots(pc)
+
+            let updated = {readRoom: writeRoom}
+            context.db.collection('rooms').doc(readRoom).update(updated)
         })
     }
 
@@ -160,11 +177,11 @@ const Video = () => {
         navigator.mediaDevices.getUserMedia(
             { video: true, audio: true })
         .then(stream => {
-            document.querySelector('#localVideo').srcObject = stream;
-            setLocalStream(stream)
-            let rStream = new MediaStream();
-            document.querySelector('#remoteVideo').srcObject = rStream;
-            setRemoteStream(rStream)
+            localVideoRef.current.srcObject = stream
+
+            stream.getTracks().forEach(track => {
+                pc.addTrack(track, stream);
+            });
         })
     }
 
@@ -174,25 +191,26 @@ const Video = () => {
             track.stop();
         });
 
-        if (remoteStream) {
-            remoteStream.getTracks().forEach(track => track.stop());
+        if (remoteVideoRef.current.srcObject) {
+            remoteVideoRef.current.srcObject.getTracks().forEach(track => track.stop());
         }
 
         if (pc) {
             pc.close();
         }
 
+        // TODO handle hanging up vs turning off video
         document.querySelector('#localVideo').srcObject = null;
         document.querySelector('#remoteVideo').srcObject = null;
 
         // Delete room on hangup
-        if (roomIdRef.current) {
-            context.db.collection('rooms').doc(roomIdRef.current).collection('candidates').get()
+        if (writeRoom) {
+            context.db.collection('rooms').doc(writeRoom).collection('candidates').get()
             .then(candidates => {
                 candidates.forEach(candidate => {
                     candidate.delete();
                 })
-                context.db.collection('rooms').doc(roomIdRef.current).get()
+                context.db.collection('rooms').doc(writeRoom).get()
                 .then(roomRef =>roomRef.delete())
             })
         }
@@ -218,15 +236,16 @@ const Video = () => {
         });
     }
 
-    const setRoomIdRef = (e) => {
-        roomIdRef.current = e.target.value
-        setRoomId(roomIdRef.current)
+    const setReadRoom = (e) => {
+        readRoom = e.target.value
+        setReadRoomState(readRoom)
     }
 
     return (
         <div>
             <h1>♥ Welcome to Secret Video Chat, {context.name}! ♥</h1>
-            <div>Your room ID is {roomId}</div>
+            <div>Your read room ID is {readRoomState}</div>
+            <div>Your write room ID is {writeRoomState}</div>
             <div id="buttons">
                 <button onClick={openUserMedia} id="cameraBtn">Open Camera & Microphone</button>
                 <button onClick={createRoom} id="createBtn">Create Room</button>
@@ -234,59 +253,25 @@ const Video = () => {
                 <button onClick={hangUp} id="hangupBtn">Hang Up</button>
             </div>
 
+
             <div>
-                {chatLog.map((item, index) => (
-                    <div key={index}>
-                        {item.sender === context.name ?
-                            <div>
-                                <p style={{ color: 'red' }}>{item.sender} (You) says:</p>
-                                <p style={{ color: 'red' }}>{item.text}</p>
-                            </div>
-                            :
-                            <div>
-                                <p>{item.sender} says:</p>
-                                <p>{item.text}</p>
-                            </div>
-                        }
-                    </div>
-                ))}
-            </div>
-
-            <form onSubmit={sendChat}>
-                <input type="text" onChange={e => setChatText(e.target.value)} value={chatText} />
-                <button type="submit">Send</button>
-                </form>
-
-            <div
-                id="room-dialog"
-                role="alertdialog"
-                aria-modal="true"
-                aria-labelledby="my-dialog-title"
-                aria-describedby="my-dialog-content">
+                <h2 id="my-dialog-title">Join Room</h2>
+                <div id="my-dialog-content">
+                    Enter ID for Room to Join:
                 <div>
-                    <div>
-                        <h2 id="my-dialog-title">Join Room</h2>
-                        <div id="my-dialog-content">
-                            Enter ID for Room to Join:
-                <div>
-                                <input type="text" id="room-id" onChange={setRoomIdRef}/>
-                                <p>Room ID</p>
-                            </div>
-                        </div>
-                        <footer>
-                            <button type="button">Cancel</button>
-                            <button id="confirmJoinBtn" type="button">Join</button>
-                        </footer>
+                        <input type="text" id="room-id" onChange={setReadRoom} />
+                        <p>Room ID</p>
                     </div>
                 </div>
+                <footer>
+                    <button type="button">Cancel</button>
+                    <button id="confirmJoinBtn" type="button">Join</button>
+                </footer>
             </div>
 
-            <div>
-                <span id="currentRoom"></span>
-            </div>
             <div id="videos">
-                <video id="localVideo" muted autoPlay playsInline></video>
-                <video id="remoteVideo" autoPlay playsInline></video>
+                <video id="localVideo" muted autoPlay playsInline ref={localVideoRef}></video>
+                <video id="remoteVideo" autoPlay playsInline ref={remoteVideoRef}></video>
             </div>
         </div >
     );
