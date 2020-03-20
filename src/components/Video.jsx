@@ -1,387 +1,286 @@
 
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useRef, useContext } from 'react';
 import Context from '../context/Context'
 
+const configuration = {
+    iceServers: [
+        {
+            urls: [
+                'stun:stun1.l.google.com:19302',
+                'stun:stun2.l.google.com:19302',
+            ],
+        },
+    ],
+    iceCandidatePoolSize: 10,
+};
+
 const Video = () => {
+    let pc
+    // TODO see if this works
+    let makingOffer
+
     const context = useContext(Context)
 
-    const configuration = {
-        iceServers: [
-            {
-                urls: [
-                    'stun:stun1.l.google.com:19302',
-                    'stun:stun2.l.google.com:19302',
-                ],
-            },
-        ],
-        iceCandidatePoolSize: 10,
-    };
-
-    let peerConnection = null;
-    const [localStreamState, setlocalStreamState] = useState(null)
-    const [remoteStreamState, setRemoteStreamState] = useState(null)
-    const [chatChannel, setChatChannel] = useState("derpderp")
+    const [channel, setChannel] = useState(null)
     const [chatText, setChatText] = useState("")
-    const [allChatState, setAllChatState] = useState([])
-    const allChatRef = useRef([])
+    const [chatLog, setChatLog] = useState([])
+    const chatLogRef = useRef([])
 
-    // let roomDialog = null;
-    let roomId = null;
+    const roomIdRef = useRef(null)
+    const [roomId, setRoomId] = useState(null)
 
-    const onChannelOpen = event => {
-    }
-    const onChannelClose = event => {
-    }
+    const [localStream, setLocalStream] = useState(null)
+    const [remoteStream, setRemoteStream] = useState(null)
+
+    const [ignoreOffer, setIgnoreOffer] = useState(false)
+    const [polite, setPolite] = useState(false)
+
     const onChannelMessage = event => {
         let chatObj = JSON.parse(event.data)
-        console.log("Remote says:", chatObj.text)
-        console.log("chat state pre: ", allChatRef.current)
-        console.log("chatChannel: ", chatChannel)
-        let temp = [...allChatRef.current]
-        temp.push(chatObj)
-        allChatRef.current = temp
-        setAllChatState(allChatRef.current)
-    }
-
-    const sendChat = e => {
-        console.log("Local (I) says:", chatText)
-        console.log("chat state pre: ", allChatRef.current)
-        console.log("chatChannel: ", chatChannel)
-        e.preventDefault()
-
-        let chatObj = { sender: context.name, text: chatText }
-        chatChannel.send(JSON.stringify(chatObj))
-        setChatText("")
-
-        let temp = [...allChatRef.current]
-        temp.push(chatObj)
-        allChatRef.current = temp
-        setAllChatState(allChatRef.current)
-    }
-
-    const createRoom = async () => {
-        document.querySelector('#createBtn').disabled = true;
-        document.querySelector('#joinBtn').disabled = true;
-        // const db = firebase.firestore();
-
-        console.log('Create PeerConnection with configuration: ', configuration);
-        peerConnection = new RTCPeerConnection(configuration);
-
-        let channel = peerConnection.createDataChannel("sendChannel");
-        channel.onmessage = onChannelMessage;
-        channel.onopen = onChannelOpen;
-        channel.onclose = onChannelClose;
-        setChatChannel(channel)
-
-        registerPeerConnectionListeners();
-
-        localStreamState.getTracks().forEach(track => {
-            peerConnection.addTrack(track, localStreamState);
-        });
-
-        // Code for creating a room below
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        console.log('Created offer:', offer);
-
-        const roomWithOffer = {
-            'offer': {
-                type: offer.type,
-                sdp: offer.sdp,
-            },
-        };
-        const roomRef = await context.db.collection('rooms').add(roomWithOffer);
-        roomId = roomRef.id;
-        console.log(`New room created with SDP offer. Room ID: ${roomRef.id}`);
-        document.querySelector(
-            '#currentRoom').innerText = `Current room is ${roomRef.id} - You are the caller!`;
-        // Code for creating a room above
-
-        // Code for collecting ICE candidates below
-        const callerCandidatesCollection = roomRef.collection('callerCandidates');
-
-        peerConnection.addEventListener('icecandidate', event => {
-            if (!event.candidate) {
-                console.log('Got final candidate!');
-                return;
-            }
-            console.log('Got candidate: ', event.candidate);
-            callerCandidatesCollection.add(event.candidate.toJSON());
-        });
-        // Code for collecting ICE candidates above
-
-        peerConnection.addEventListener('track', event => {
-            console.log('Got remote track:', event.streams[0]);
-            event.streams[0].getTracks().forEach(track => {
-                console.log('Add a track to the remoteStreamState:', track);
-                remoteStreamState.addTrack(track);
-            });
-        });
-
-        // Listening for remote session description below
-        roomRef.onSnapshot(async snapshot => {
-            const data = snapshot.data();
-            if (!peerConnection.currentRemoteDescription && data.answer) {
-                console.log('Got remote description: ', data.answer);
-                const rtcSessionDescription = new RTCSessionDescription(data.answer);
-                await peerConnection.setRemoteDescription(rtcSessionDescription);
-            }
-        });
-        // Listening for remote session description above
-
-        // Listen for remote ICE candidates below
-        roomRef.collection('calleeCandidates').onSnapshot(snapshot => {
-            snapshot.docChanges().forEach(async change => {
-                if (change.type === 'added') {
-                    let data = change.doc.data();
-                    console.log(`Got new remote ICE candidate: ${JSON.stringify(data)}`);
-                    await peerConnection.addIceCandidate(new RTCIceCandidate(data));
-                }
-            });
-        });
-        // Listen for remote ICE candidates above
-    }
-
-    const joinRoom = () => {
-        document.querySelector('#createBtn').disabled = true;
-        document.querySelector('#joinBtn').disabled = true;
-
-        document.querySelector('#confirmJoinBtn').
-            addEventListener('click', async () => {
-                roomId = document.querySelector('#room-id').value;
-                console.log('Join room: ', roomId);
-                document.querySelector(
-                    '#currentRoom').innerText = `Current room is ${roomId} - You are the callee!`;
-                await joinRoomById(roomId);
-            }, { once: true });
-        // roomDialog.open();
+        let temp = [
+            ...chatLogRef.current,
+            chatObj
+        ]
+        chatLogRef.current = temp
+        setChatLog(chatLogRef.current)
     }
 
     const receiveChannelCallback = event => {
-        let channel = event.channel;
-        channel.onmessage = onChannelMessage;
-        channel.onopen = onChannelOpen;
-        channel.onclose = onChannelClose;
-        setChatChannel(channel)
+        let ch = event.channel;
+        ch.onmessage = onChannelMessage;
+        setChannel(ch)
     }
 
-    const joinRoomById = async (roomId) => {
-        // const db = firebase.firestore();
-        const roomRef = context.db.collection('rooms').doc(`${roomId}`);
-        const roomSnapshot = await roomRef.get();
-        console.log('Got room:', roomSnapshot.exists);
+    const sendChat = e => {
+        e.preventDefault()
 
-        if (roomSnapshot.exists) {
-            console.log('Create PeerConnection with configuration: ', configuration);
-            peerConnection = new RTCPeerConnection(configuration);
-            peerConnection.ondatachannel = receiveChannelCallback;
+        let chatObj = { sender: context.name, text: chatText }
+        channel.send(JSON.stringify(chatObj))
+        setChatText("")
 
-            registerPeerConnectionListeners();
-            localStreamState.getTracks().forEach(track => {
-                peerConnection.addTrack(track, localStreamState);
-            });
+        let temp = [
+            ...chatLogRef.current,
+            chatObj
+        ]
+        chatLogRef.current = temp
+        setChatLog(chatLogRef.current)
+    }
 
-            // Code for collecting ICE candidates below
-            const calleeCandidatesCollection = roomRef.collection('calleeCandidates');
-            peerConnection.addEventListener('icecandidate', event => {
-                if (!event.candidate) {
-                    console.log('Got final candidate!');
-                    return;
-                }
-                console.log('Got candidate: ', event.candidate);
-                calleeCandidatesCollection.add(event.candidate.toJSON());
-            });
-            // Code for collecting ICE candidates above
+    const initializePeerConnection = (pc) => {
 
-            peerConnection.addEventListener('track', event => {
-                console.log('Got remote track:', event.streams[0]);
-                event.streams[0].getTracks().forEach(track => {
-                    console.log('Add a track to the remoteStream:', track);
-                    remoteStreamState.addTrack(track);
-                });
-            });
+        let ch = pc.createDataChannel("sendChannel");
+        ch.onmessage = onChannelMessage;
+        setChannel(ch)
 
-            // Code for creating SDP answer below
-            const offer = roomSnapshot.data().offer;
-            console.log('Got offer:', offer);
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-            const answer = await peerConnection.createAnswer();
-            console.log('Created answer:', answer);
-            await peerConnection.setLocalDescription(answer);
+        pc.ondatachannel = receiveChannelCallback;
 
-            const roomWithAnswer = {
-                answer: {
-                    type: answer.type,
-                    sdp: answer.sdp,
-                },
-            };
-            await roomRef.update(roomWithAnswer);
-            // Code for creating SDP answer above
+        registerPeerConnectionListeners(pc);
 
-            // Listening for remote ICE candidates below
-            roomRef.collection('callerCandidates').onSnapshot(snapshot => {
-                snapshot.docChanges().forEach(async change => {
-                    if (change.type === 'added') {
-                        let data = change.doc.data();
-                        console.log(`Got new remote ICE candidate: ${JSON.stringify(data)}`);
-                        await peerConnection.addIceCandidate(new RTCIceCandidate(data));
-                    }
-                });
-            });
-            // Listening for remote ICE candidates above
+        makingOffer = false;
+        pc.onnegotiationneeded = () => {
+            makingOffer = true;
+            pc.setLocalDescription()
+                .then(() => {
+                    const description = pc.localDescription.toJSON()
+                    return context.db.collection('rooms').doc(roomIdRef.current).update({description})
+                })
+        };
+
+        pc.onicecandidate = event => {
+            if (event.candidate) {
+                context.db.collection('rooms').doc(roomIdRef.current).collection('candidates').add(event.candidate.toJSON());
+            }
         }
+
+        context.db.collection('rooms').doc(roomIdRef.current).onSnapshot(snapshot => {
+            let description = snapshot.data().description
+            const offerCollision = (description.type == "offer") &&
+                (makingOffer || pc.signalingState != "stable");
+
+            setIgnoreOffer(!polite && offerCollision)
+            if (ignoreOffer) {
+                return;
+            }
+
+            pc.setRemoteDescription(description)
+            .then(() => {
+                if (description.type == "offer") {
+                    pc.setLocalDescription()
+                    .then(description => {
+                        return context.db.collection('rooms').doc(roomIdRef.current).update({description})
+                    })
+                }
+            })
+        })
+
+        context.db.collection('rooms').doc(roomIdRef.current).collection('candidates').onSnapshot(snapshot => {
+            snapshot.docChanges().forEach(change => {
+                if (change.type === "added") {
+                    let candidate = change.doc.data()
+                    pc.addIceCandidate(candidate);
+                }
+            })
+        })
     }
 
-    const openUserMedia = async (e) => {
-        const stream = await navigator.mediaDevices.getUserMedia(
-            { video: true, audio: true });
-        document.querySelector('#localVideo').srcObject = stream;
-        setlocalStreamState(stream)
-        let remoteStream = new MediaStream();
-        document.querySelector('#remoteVideo').srcObject = remoteStream;
-        setRemoteStreamState(remoteStream)
+    const createRoom = () => {
+        // TODO better politeness
+        setPolite(true)
+        pc = new RTCPeerConnection(configuration)
 
-        console.log('Stream:', document.querySelector('#localVideo').srcObject);
-        document.querySelector('#cameraBtn').disabled = true;
-        document.querySelector('#joinBtn').disabled = false;
-        document.querySelector('#createBtn').disabled = false;
-        document.querySelector('#hangupBtn').disabled = false;
+        // need to create offer manually the first time
+        let description
+        pc.createOffer()
+        .then(offer => {
+            description = offer.toJSON()
+            return context.db.collection('rooms').add({description})
+        })
+        .then(roomRef => {
+            console.log('created room: ', roomRef.id)
+            roomIdRef.current = roomRef.id
+            setRoomId(roomIdRef.current)
+
+            initializePeerConnection(pc)
+            pc.setLocalDescription({description})
+        })
     }
 
-    const hangUp = async (e) => {
+    const joinRoom = () => {
+        context.db.collection('rooms').doc(roomIdRef.current).get()
+        .then(roomSnapshot => {
+            if (roomSnapshot.exists) {
+                pc = new RTCPeerConnection(configuration)
+                pc.setLocalDescription(roomSnapshot.data())
+                initializePeerConnection(pc)
+            }
+        })
+    }
+
+    const openUserMedia = (e) => {
+        navigator.mediaDevices.getUserMedia(
+            { video: true, audio: true })
+        .then(stream => {
+            document.querySelector('#localVideo').srcObject = stream;
+            setLocalStream(stream)
+            let rStream = new MediaStream();
+            document.querySelector('#remoteVideo').srcObject = rStream;
+            setRemoteStream(rStream)
+        })
+    }
+
+    const hangUp = (e) => {
         const tracks = document.querySelector('#localVideo').srcObject.getTracks();
         tracks.forEach(track => {
             track.stop();
         });
 
-        if (remoteStreamState) {
-            remoteStreamState.getTracks().forEach(track => track.stop());
+        if (remoteStream) {
+            remoteStream.getTracks().forEach(track => track.stop());
         }
 
-        if (peerConnection) {
-            peerConnection.close();
+        if (pc) {
+            pc.close();
         }
 
         document.querySelector('#localVideo').srcObject = null;
         document.querySelector('#remoteVideo').srcObject = null;
-        document.querySelector('#cameraBtn').disabled = false;
-        document.querySelector('#joinBtn').disabled = true;
-        document.querySelector('#createBtn').disabled = true;
-        document.querySelector('#hangupBtn').disabled = true;
-        document.querySelector('#currentRoom').innerText = '';
 
         // Delete room on hangup
-        if (roomId) {
-            // const db = firebase.firestore();
-            const roomRef = context.db.collection('rooms').doc(roomId);
-            const calleeCandidates = await roomRef.collection('calleeCandidates').get();
-            calleeCandidates.forEach(async candidate => {
-                await candidate.delete();
-            });
-            const callerCandidates = await roomRef.collection('callerCandidates').get();
-            callerCandidates.forEach(async candidate => {
-                await candidate.delete();
-            });
-            await roomRef.delete();
+        if (roomIdRef.current) {
+            context.db.collection('rooms').doc(roomIdRef.current).collection('candidates').get()
+            .then(candidates => {
+                candidates.forEach(candidate => {
+                    candidate.delete();
+                })
+                context.db.collection('rooms').doc(roomIdRef.current).get()
+                .then(roomRef =>roomRef.delete())
+            })
         }
-
-        document.location.reload(true);
     }
 
-    const registerPeerConnectionListeners = () => {
-        peerConnection.addEventListener('icegatheringstatechange', () => {
+    const registerPeerConnectionListeners = (pc) => {
+        pc.addEventListener('icegatheringstatechange', () => {
             console.log(
-                `ICE gathering state changed: ${peerConnection.iceGatheringState}`);
+                `ICE gathering state changed: ${pc.iceGatheringState}`);
         });
 
-        peerConnection.addEventListener('connectionstatechange', () => {
-            console.log(`Connection state change: ${peerConnection.connectionState}`);
+        pc.addEventListener('connectionstatechange', () => {
+            console.log(`Connection state change: ${pc.connectionState}`);
         });
 
-        peerConnection.addEventListener('signalingstatechange', () => {
-            console.log(`Signaling state change: ${peerConnection.signalingState}`);
+        pc.addEventListener('signalingstatechange', () => {
+            console.log(`Signaling state change: ${pc.signalingState}`);
         });
 
-        peerConnection.addEventListener('iceconnectionstatechange ', () => {
+        pc.addEventListener('iceconnectionstatechange ', () => {
             console.log(
-                `ICE connection state change: ${peerConnection.iceConnectionState}`);
+                `ICE connection state change: ${pc.iceConnectionState}`);
         });
+    }
+
+    const setRoomIdRef = (e) => {
+        roomIdRef.current = e.target.value
+        setRoomId(roomIdRef.current)
     }
 
     return (
-
         <div>
             <h1>♥ Welcome to Secret Video Chat, {context.name}! ♥</h1>
+            <div>Your room ID is {roomId}</div>
             <div id="buttons">
-                {localStreamState ?
-                    <div>
-                        <button onClick={openUserMedia} id="cameraBtn">Open Camera & Microphone</button>
-                        <button onClick={createRoom} id="createBtn">Create Room</button>
-                        <button onClick={joinRoom} id="joinBtn">Join Room</button>
-                        <button onClick={hangUp} id="hangupBtn">Hang Up</button>
+                <button onClick={openUserMedia} id="cameraBtn">Open Camera & Microphone</button>
+                <button onClick={createRoom} id="createBtn">Create Room</button>
+                <button onClick={joinRoom} id="joinBtn">Join Room</button>
+                <button onClick={hangUp} id="hangupBtn">Hang Up</button>
+            </div>
 
-                        <div>
-                            {allChatState.map((item, index) => (
-
-
-                                <div key={index}>
-                                    {item.sender === context.name ?
-                                        <div>
-                                            <p style={{ color: 'red' }}>{item.sender} (You) says:</p>
-                                            <p style={{ color: 'red' }}>{item.text}</p>
-                                        </div>
-                                        :
-                                        <div>
-                                            <p>{item.sender} says:</p>
-                                            <p>{item.text}</p>
-                                        </div>
-                                    }
-                                </div>
-                            ))
-
-                            }
-                        </div>
-
-
-                        <form onSubmit={sendChat}>
-                            <input type="text" onChange={e => setChatText(e.target.value)} value={chatText} />
-                            <button type="submit">Send</button>
-                        </form>
-
-                        <div
-                            id="room-dialog"
-                            role="alertdialog"
-                            aria-modal="true"
-                            aria-labelledby="my-dialog-title"
-                            aria-describedby="my-dialog-content">
+            <div>
+                {chatLog.map((item, index) => (
+                    <div key={index}>
+                        {item.sender === context.name ?
                             <div>
-                                <div>
-                                    <h2 id="my-dialog-title">Join Room</h2>
-                                    <div id="my-dialog-content">
-                                        Enter ID for Room to Join:
+                                <p style={{ color: 'red' }}>{item.sender} (You) says:</p>
+                                <p style={{ color: 'red' }}>{item.text}</p>
+                            </div>
+                            :
+                            <div>
+                                <p>{item.sender} says:</p>
+                                <p>{item.text}</p>
+                            </div>
+                        }
+                    </div>
+                ))}
+            </div>
+
+            <form onSubmit={sendChat}>
+                <input type="text" onChange={e => setChatText(e.target.value)} value={chatText} />
+                <button type="submit">Send</button>
+                </form>
+
+            <div
+                id="room-dialog"
+                role="alertdialog"
+                aria-modal="true"
+                aria-labelledby="my-dialog-title"
+                aria-describedby="my-dialog-content">
                 <div>
-                                            <input type="text" id="room-id" />
-                                            <p>Room ID</p>
-                                        </div>
-                                    </div>
-                                    <footer>
-                                        <button type="button">Cancel</button>
-                                        <button id="confirmJoinBtn" type="button">Join</button>
-                                    </footer>
-                                </div>
+                    <div>
+                        <h2 id="my-dialog-title">Join Room</h2>
+                        <div id="my-dialog-content">
+                            Enter ID for Room to Join:
+                <div>
+                                <input type="text" id="room-id" onChange={setRoomIdRef}/>
+                                <p>Room ID</p>
                             </div>
                         </div>
+                        <footer>
+                            <button type="button">Cancel</button>
+                            <button id="confirmJoinBtn" type="button">Join</button>
+                        </footer>
                     </div>
-                    :
-                    <div>
-                        <button onClick={openUserMedia} id="cameraBtn">Open Camera & Microphone</button>
-                        <button disabled onClick={createRoom} id="createBtn">Create Room</button>
-                        <button disabled onClick={joinRoom} id="joinBtn">Join Room</button>
-                        <button disabled onClick={hangUp} id="hangupBtn">Hang Up</button>
-                        <text disabled onClick={sendChat}></text>
-                    </div>
-                }
+                </div>
             </div>
+
             <div>
                 <span id="currentRoom"></span>
             </div>
@@ -389,8 +288,7 @@ const Video = () => {
                 <video id="localVideo" muted autoPlay playsInline></video>
                 <video id="remoteVideo" autoPlay playsInline></video>
             </div>
-
-        </div>
+        </div >
     );
 }
 
