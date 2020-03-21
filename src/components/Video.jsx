@@ -17,17 +17,32 @@ const configuration = {
 };
 
 // Keep WebRTC goodies in global scope
-let pc = new RTCPeerConnection(configuration)
-let channel = null
-let chatLog = []
-let makingOffer = false
-let polite = false
-let ignoreOffer = false
+let pc
+let channel
+let chatLog
+let makingOffer
+let polite
+let ignoreOffer
+let hangingUp
 
 // Room data is also tied to signaling, but we need to also maintain a React state
 // copy for UI rendering
-let writeRoom = null
-let readRoom = null
+let writeRoom
+let readRoom
+
+const initGlobal = () => {
+    pc = new RTCPeerConnection(configuration)
+    channel = null
+    chatLog = []
+    makingOffer = false
+    polite = false
+    ignoreOffer = false
+    hangingUp = false
+
+    writeRoom = null
+    readRoom = null
+}
+initGlobal()
 
 const Video = () => {
     // context stores the db connection
@@ -61,7 +76,7 @@ const Video = () => {
             pc.setLocalDescription()
                 .then(() => {
                     const description = pc.localDescription.toJSON()
-                    return context.db.collection('rooms').doc(writeRoom).update({description})
+                    return context.db.collection('rooms').doc(writeRoom).update({ description })
                 })
                 .finally(() => makingOffer = false)
         };
@@ -75,7 +90,6 @@ const Video = () => {
 
         // handle track changes
         pc.ontrack = (event) => {
-            console.log('track event!')
             event.streams[0].getTracks().forEach(track => {
                 remoteVideoRef.current.srcObject.addTrack(track)
             })
@@ -93,13 +107,24 @@ const Video = () => {
     // once it is set, we will ignore any future room updates.
     const initializeWriteRoomOnSnapshots = (pc) => {
         context.db.collection('rooms').doc(writeRoom).onSnapshot(snapshot => {
+            // ignore your own writes
+            let myWrite = snapshot.metadata.hasPendingWrites ? true : false;
+            if (myWrite) {
+                return
+            }
+
+            // if hanging up, there may be writes on the other end to delete
+            if (hangingUp || !snapshot.exists) {
+                return
+            }
+
             if (snapshot.data().readRoom && !readRoom) {
                 readRoom = snapshot.data().readRoom
                 setReadRoomState(readRoom)
                 initializeReadRoomOnSnapshots(pc)
             }
         })
-        
+
     }
 
     // Initializer for listening on read room snapshots.
@@ -107,6 +132,17 @@ const Video = () => {
     const initializeReadRoomOnSnapshots = (pc) => {
         // listen for new offers/answers
         context.db.collection('rooms').doc(readRoom).onSnapshot(snapshot => {
+            // ignore your own writes
+            let myWrite = snapshot.metadata.hasPendingWrites ? true : false;
+            if (myWrite) {
+                return
+            }
+
+            // if hanging up, there may be writes on the other end to delete
+            if (hangingUp || !snapshot.exists) {
+                return
+            }
+
             let description = snapshot.data().description
             const offerCollision = (description.type == "offer") &&
                 (makingOffer || pc.signalingState != "stable");
@@ -117,15 +153,15 @@ const Video = () => {
             }
 
             pc.setRemoteDescription(new RTCSessionDescription((description)))
-            .then(() => {
-                if (description.type == "offer") {
-                    pc.setLocalDescription()
-                    .then(() => {
-                        let description = pc.localDescription.toJSON()
-                        return context.db.collection('rooms').doc(writeRoom).update({description})
-                    })
-                }
-            })
+                .then(() => {
+                    if (description.type == "offer") {
+                        pc.setLocalDescription()
+                            .then(() => {
+                                let description = pc.localDescription.toJSON()
+                                return context.db.collection('rooms').doc(writeRoom).update({ description })
+                            })
+                    }
+                })
         })
 
         // listen for new ice candidates
@@ -133,6 +169,11 @@ const Video = () => {
             // ignore your own writes
             let myWrite = snapshot.metadata.hasPendingWrites ? true : false;
             if (myWrite) {
+                return
+            }
+
+            // if hanging up, there may be writes on the other end to delete
+            if (hangingUp || !snapshot.exists) {
                 return
             }
 
@@ -153,19 +194,19 @@ const Video = () => {
 
         let offer
         pc.createOffer()
-        .then(offerObj => {
-            offer = offerObj
-            let description = offer.toJSON()
-            return context.db.collection('rooms').add({description})
-        })
-        .then(roomSnapshot => {
-            writeRoom = roomSnapshot.id
-            setWriteRoomState(writeRoom)
+            .then(offerObj => {
+                offer = offerObj
+                let description = offer.toJSON()
+                return context.db.collection('rooms').add({ description })
+            })
+            .then(roomSnapshot => {
+                writeRoom = roomSnapshot.id
+                setWriteRoomState(writeRoom)
 
-            initializePeerConnection(pc)
-            initializeWriteRoomOnSnapshots(pc)
-            pc.setLocalDescription(offer)
-        })
+                initializePeerConnection(pc)
+                initializeWriteRoomOnSnapshots(pc)
+                pc.setLocalDescription(offer)
+            })
     }
 
     const joinRoom = () => {
@@ -173,32 +214,31 @@ const Video = () => {
         // when we create the answer and put in firebase
         let offerSnapshot = null
         context.db.collection('rooms').doc(readRoom).get()
-        .then(snapshot => {
-            offerSnapshot = snapshot
-            return context.db.collection('rooms').add({})
-        }).then(snapshot => {
-            writeRoom = snapshot.id
-            setWriteRoomState(writeRoom)
-        }).then(() => {
-            initializePeerConnection(pc)
-            let offer = offerSnapshot.data().description
-            return pc.setRemoteDescription(new RTCSessionDescription((offer)))
-        }).then(() => pc.setLocalDescription())
-        .then(() => {
-            let description = pc.localDescription.toJSON()
-            context.db.collection('rooms').doc(writeRoom).update({description})
-        })
-        .then(() => {
-            initializeReadRoomOnSnapshots(pc)
+            .then(snapshot => {
+                offerSnapshot = snapshot
+                return context.db.collection('rooms').add({})
+            }).then(snapshot => {
+                writeRoom = snapshot.id
+                setWriteRoomState(writeRoom)
+            }).then(() => {
+                initializePeerConnection(pc)
+                let offer = offerSnapshot.data().description
+                return pc.setRemoteDescription(new RTCSessionDescription((offer)))
+            }).then(() => pc.setLocalDescription())
+            .then(() => {
+                let description = pc.localDescription.toJSON()
+                context.db.collection('rooms').doc(writeRoom).update({ description })
+            })
+            .then(() => {
+                initializeReadRoomOnSnapshots(pc)
 
-            let updated = {readRoom: writeRoom}
-            context.db.collection('rooms').doc(readRoom).update(updated)
-        })
+                let updated = { readRoom: writeRoom }
+                context.db.collection('rooms').doc(readRoom).update(updated)
+            })
     }
 
     // handle channel message recieving
     const onChannelMessage = event => {
-        console.log("received message: ", event.data)
         let chatObj = JSON.parse(event.data)
         chatLog = [...chatLog, chatObj]
         setChatLogState(chatLog)
@@ -221,64 +261,71 @@ const Video = () => {
         }
 
         return navigator.mediaDevices.getUserMedia(
-            {audio: true, video: true})
-        .then(stream => {
-            localVideoRef.current.srcObject = stream
-            stream.getTracks().forEach(track => {
-                track.enabled = false
-                pc.addTrack(track, stream)
-            });
-        })
+            { audio: true, video: true })
+            .then(stream => {
+                localVideoRef.current.srcObject = stream
+                stream.getTracks().forEach(track => {
+                    track.enabled = false
+                    pc.addTrack(track, stream)
+                });
+            })
     }
 
     const toggleAudio = () => {
         let newAudioState = !audioState
         setAudioState(newAudioState)
         openUserMedia()
-        .then(() => {
-            let stream = localVideoRef.current.srcObject
-            stream.getAudioTracks().forEach(track => track.enabled = newAudioState)
-        })
+            .then(() => {
+                let stream = localVideoRef.current.srcObject
+                stream.getAudioTracks().forEach(track => track.enabled = newAudioState)
+            })
     }
     const toggleVideo = () => {
         let newVideoState = !videoState
         setVideoState(newVideoState)
         openUserMedia()
-        .then(() => {
-            let stream = localVideoRef.current.srcObject
-            stream.getVideoTracks().forEach(track => track.enabled = newVideoState)
-        })
-        .catch(error => console.log(error))
+            .then(() => {
+                let stream = localVideoRef.current.srcObject
+                stream.getVideoTracks().forEach(track => track.enabled = newVideoState)
+            })
     }
 
     const hangUp = (e) => {
-        const tracks = document.querySelector('#localVideo').srcObject.getTracks();
-        tracks.forEach(track => {
-            track.stop();
-        });
-
+        hangingUp = true
+        if (localVideoRef.current.srcObject) {
+            localVideoRef.current.srcObject.getTracks().forEach(track => track.stop())
+        }
+        localVideoRef.current.srcObject = null
         if (remoteVideoRef.current.srcObject) {
-            remoteVideoRef.current.srcObject.getTracks().forEach(track => track.stop());
+            remoteVideoRef.current.srcObject.getTracks().forEach(track => track.stop())
         }
-
-        if (pc) {
-            pc.close();
-        }
-
-        // TODO handle hanging up vs turning off video
-        document.querySelector('#localVideo').srcObject = null;
-        document.querySelector('#remoteVideo').srcObject = null;
-
-        // Delete room on hangup
+        remoteVideoRef.current.srcObject = null
+        pc.close()
         if (writeRoom) {
             context.db.collection('rooms').doc(writeRoom).collection('candidates').get()
-            .then(candidates => {
-                candidates.forEach(candidate => {
-                    candidate.delete();
+                .then(candidates => {
+                    candidates.forEach(candidate => {
+                        context.db.collection('rooms').doc(writeRoom).collection('candidates').doc(candidate.id).delete()
+                    })
                 })
-                context.db.collection('rooms').doc(writeRoom).get()
-                .then(roomRef =>roomRef.delete())
-            })
+                .then(() => {
+                    return context.db.collection('rooms').doc(writeRoom).delete()
+                })
+                .then(() => {
+                    // this will also set hangingUp back to false
+                    initGlobal()
+
+                    // init React states
+                    setWriteRoomState(null)
+                    setReadRoomState(null)
+                    setAudioState(false)
+                    setVideoState(false)
+                    setChatLogState([])
+                    setChatText("")
+                    // we don't want to reset the Refs since they are tied to html tags
+                    // localVideoRef.current = null
+                    // remoteVideoRef.current = null
+                })
         }
     }
 
@@ -290,6 +337,9 @@ const Video = () => {
 
         pc.addEventListener('connectionstatechange', () => {
             console.log(`Connection state change: ${pc.connectionState}`);
+            if (pc.connectionState == 'disconnected') {
+                hangUp()
+            }
         });
 
         pc.addEventListener('signalingstatechange', () => {
@@ -313,7 +363,6 @@ const Video = () => {
             <div>Your read room ID is {readRoomState}</div>
             <div>Your write room ID is {writeRoomState}</div>
             <div id="buttons">
-                <button onClick={() => openUserMedia(audioState, videoState)} id="cameraBtn">Open Camera & Microphone</button>
                 <button onClick={toggleAudio} id="toggleAudio">Turn {audioState ? "Off" : "On"} Audio</button>
                 <button onClick={toggleVideo} id="toggleVideo">Turn {videoState ? "Off" : "On"} Video</button>
                 <button onClick={createRoom} id="createBtn">Create Room</button>
