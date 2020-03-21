@@ -366,7 +366,7 @@ const Video = () => {
                 <button onClick={toggleAudio} id="toggleAudio">Turn {audioState ? "Off" : "On"} Audio</button>
                 <button onClick={toggleVideo} id="toggleVideo">Turn {videoState ? "Off" : "On"} Video</button>
                 <button onClick={createRoom} id="createBtn">Create Room</button>
-                <button onClick={hangUp} id="hangupBtn">Hang Up</button>
+                <button onClick={hangUp} id="hangupBtn">End Chat</button>
             </div>
             <div>
                 <h2 id="my-dialog-title">Join Room</h2>
