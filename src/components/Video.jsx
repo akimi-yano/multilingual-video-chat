@@ -18,6 +18,8 @@ const configuration = {
 
 // Keep WebRTC goodies in global scope
 let pc = new RTCPeerConnection(configuration)
+let channel = null
+let chatLog = []
 let makingOffer = false
 let polite = false
 let ignoreOffer = false
@@ -34,12 +36,16 @@ const Video = () => {
     // the React state counterpart to writeRoom and readRoom, for UI needs
     const [writeRoomState, setWriteRoomState] = useState(null)
     const [readRoomState, setReadRoomState] = useState(null)
-    const [audioState, setAudioState] = useState(false)
-    const [videoState, setVideoState] = useState(false)
 
     // refs for video stream as srcObject cannot be set by using React states
     const localVideoRef = useRef(null)
     const remoteVideoRef = useRef(null)
+
+    // Standard React states
+    const [audioState, setAudioState] = useState(false)
+    const [videoState, setVideoState] = useState(false)
+    const [chatLogState, setChatLogState] = useState([])
+    const [chatText, setChatText] = useState("")
 
     // set up WebRTC peer connection with the necessary listeners
     const initializePeerConnection = (pc) => {
@@ -73,6 +79,12 @@ const Video = () => {
             event.streams[0].getTracks().forEach(track => {
                 remoteVideoRef.current.srcObject.addTrack(track)
             })
+        }
+
+        // handle channel changes
+        pc.ondatachannel = (event) => {
+            channel = event.channel;
+            channel.onmessage = onChannelMessage;
         }
     }
 
@@ -136,6 +148,8 @@ const Video = () => {
     const createRoom = () => {
         // the creator of the room is destined to be polite
         polite = true
+        channel = pc.createDataChannel("sendChannel")
+        channel.onmessage = onChannelMessage
 
         let offer
         pc.createOffer()
@@ -155,25 +169,49 @@ const Video = () => {
     }
 
     const joinRoom = () => {
+        // we need to create a writeRoom ahead of time b/c ice candidates may arrive earlier than
+        // when we create the answer and put in firebase
+        let offerSnapshot = null
         context.db.collection('rooms').doc(readRoom).get()
-        .then(roomSnapshot => {
+        .then(snapshot => {
+            offerSnapshot = snapshot
+            return context.db.collection('rooms').add({})
+        }).then(snapshot => {
+            writeRoom = snapshot.id
+            setWriteRoomState(writeRoom)
+        }).then(() => {
             initializePeerConnection(pc)
-            let offer = roomSnapshot.data().description
+            let offer = offerSnapshot.data().description
             return pc.setRemoteDescription(new RTCSessionDescription((offer)))
-        })
-        .then(() => pc.setLocalDescription())
+        }).then(() => pc.setLocalDescription())
         .then(() => {
             let description = pc.localDescription.toJSON()
-            return context.db.collection('rooms').add({description})
+            context.db.collection('rooms').doc(writeRoom).update({description})
         })
-        .then((roomSnapshot) => {
-            writeRoom = roomSnapshot.id
-            setWriteRoomState(writeRoom)
+        .then(() => {
             initializeReadRoomOnSnapshots(pc)
 
             let updated = {readRoom: writeRoom}
             context.db.collection('rooms').doc(readRoom).update(updated)
         })
+    }
+
+    // handle channel message recieving
+    const onChannelMessage = event => {
+        console.log("received message: ", event.data)
+        let chatObj = JSON.parse(event.data)
+        chatLog = [...chatLog, chatObj]
+        setChatLogState(chatLog)
+    }
+
+    const sendChannelMessage = e => {
+        e.preventDefault()
+
+        let chatObj = { sender: context.name, text: chatText }
+        channel.send(JSON.stringify(chatObj))
+        setChatText("")
+        chatLog = [...chatLog, chatObj]
+        setChatLogState(chatLog)
     }
 
     const openUserMedia = () => {
@@ -187,6 +225,7 @@ const Video = () => {
         .then(stream => {
             localVideoRef.current.srcObject = stream
             stream.getTracks().forEach(track => {
+                track.enabled = false
                 pc.addTrack(track, stream)
             });
         })
@@ -275,8 +314,8 @@ const Video = () => {
             <div>Your write room ID is {writeRoomState}</div>
             <div id="buttons">
                 <button onClick={() => openUserMedia(audioState, videoState)} id="cameraBtn">Open Camera & Microphone</button>
-                <button onClick={toggleAudio} id="toggleAudio">Toggle Audio</button>
-                <button onClick={toggleVideo} id="toggleVideo">Toggle Video</button>
+                <button onClick={toggleAudio} id="toggleAudio">Turn {audioState ? "Off" : "On"} Audio</button>
+                <button onClick={toggleVideo} id="toggleVideo">Turn {videoState ? "Off" : "On"} Video</button>
                 <button onClick={createRoom} id="createBtn">Create Room</button>
                 <button onClick={hangUp} id="hangupBtn">Hang Up</button>
             </div>
@@ -286,11 +325,36 @@ const Video = () => {
                     Enter ID for Room to Join:
                 <div>
                         <input type="text" id="room-id" onChange={setReadRoom} />
-                        <p>Room ID</p>
                         <button onClick={joinRoom} id="joinBtn">Join Room</button>
                     </div>
                 </div>
             </div>
+
+            <div>
+                {chatLogState.map((item, index) => (
+
+
+                    <div key={index}>
+                        {item.sender === context.name ?
+                            <div>
+                                <p style={{ color: 'red' }}>{item.sender} (You) says:</p>
+                                <p style={{ color: 'red' }}>{item.text}</p>
+                            </div>
+                            :
+                            <div>
+                                <p>{item.sender} says:</p>
+                                <p>{item.text}</p>
+                            </div>
+                        }
+                    </div>
+                ))
+
+                }
+            </div>
+            <form onSubmit={sendChannelMessage}>
+                <input type="text" onChange={e => setChatText(e.target.value)} value={chatText} />
+                <button type="submit">Send</button>
+            </form>
 
             <div id="videos">
                 <video id="localVideo" muted autoPlay playsInline ref={localVideoRef}></video>
