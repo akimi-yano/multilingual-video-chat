@@ -11,14 +11,12 @@ import mapboxConfig from '../config/mapboxConfig.js'
 
 import {navigate} from "@reach/router"
 
-
 const Map = (props) => {
     const context = useContext(Context)
     let map
 
     const [highlightedCountry, setHighlightedCountry] = useState("")
     let geojson;
-
 
     useEffect(() => {
         map = L.map('map').setView([51.505, -50.50], 3);
@@ -99,12 +97,11 @@ const Map = (props) => {
         }
     }
 
-
     return (
         <div>
-            {context.name?
-            <div>Welcome {context.name}</div>:
-            null}
+            {/* {context.name?
+            <div >Welcome {context.name}</div>:
+            null} */}
             <div className="countryName">{highlightedCountry}</div>
             <div className="container" id="map"></div>
         </div>

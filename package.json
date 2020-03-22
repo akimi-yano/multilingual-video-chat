@@ -10,6 +10,7 @@
     "firebase": "^7.11.0",
     "firebase-tools": "^7.15.1",
     "mapbox.js": "^3.2.1",
+    "microsoft-cognitiveservices-speech-sdk": "^1.10.1",
     "package.json": "^2.0.1",
     "react": "^16.13.1",
     "react-addons-css-transition-group": "^15.6.2",

@@ -1,22 +1,9 @@
 
 import React, { useState, useRef, useContext, useEffect } from 'react';
 import Context from '../context/Context'
-import { resolve } from 'dns';
+import * as SpeechSDK from "microsoft-cognitiveservices-speech-sdk"
 import { navigate } from '@reach/router';
-
-
-// WebRTC peer connection configuration
-const configuration = {
-    iceServers: [
-        {
-            urls: [
-                'stun:stun1.l.google.com:19302',
-                'stun:stun2.l.google.com:19302',
-            ],
-        },
-    ],
-    iceCandidatePoolSize: 10,
-};
+import staticConfig from "../staticConfig.js"
 
 // Keep WebRTC goodies in global scope
 let pc
@@ -29,8 +16,8 @@ let hangingUp
 let writeRoom
 let readRoom
 
-const initGlobal = () => {
-    pc = new RTCPeerConnection(configuration)
+const initRTC = () => {
+    pc = new RTCPeerConnection(staticConfig.rtcConfig)
     channel = null
     chatLog = []
     makingOffer = false
@@ -41,7 +28,7 @@ const initGlobal = () => {
     writeRoom = null
     readRoom = null
 }
-initGlobal()
+initRTC()
 
 const Video = (props) => {
     // context stores the db connection
@@ -52,6 +39,7 @@ const Video = (props) => {
     const remoteVideoRef = useRef(null)
     const speechButtonRef = useRef(null)
     const languageRef = useRef(null)
+    const translationRef = useRef(null)
 
     // Standard React states
     const [audioState, setAudioState] = useState(false)
@@ -59,40 +47,30 @@ const Video = (props) => {
     const [chatLogState, setChatLogState] = useState([])
     const [chatText, setChatText] = useState("")
     const [speechText, setSpeechText] = useState("")
+    const [translatedText, setTranslatedText] = useState("")
     useEffect(() => {
-        if (!context.db) {
-            return
+        if (context.db) {
+            context.db.collection('countries').doc(props.country).collection('rooms').get()
+                .then(countryRoomsSnapshot => {
+                    if (countryRoomsSnapshot.docs.length < 1) {
+                        createRoom()
+                    } else if (countryRoomsSnapshot.docs.length == 1) {
+                        readRoom = countryRoomsSnapshot.docs[0].data().room
+                        joinRoom()
+                    } else {
+                        console.log('country is full: ', countryRoomsSnapshot.docs)
+                    }
+                })
         }
-        context.db.collection('countries').doc(props.country).collection('rooms').get()
-        .then(countryRoomsSnapshot => {
-            if (countryRoomsSnapshot.docs.length < 1) {
-                createRoom()
-            } else if (countryRoomsSnapshot.docs.length == 1) {
-                readRoom = countryRoomsSnapshot.docs[0].data().room
-                joinRoom()
-            } else {
-                console.log('country is full: ', countryRoomsSnapshot.docs)
+
+        if (context.speechRec) {
+            context.speechRec.onresult = function (event) {
+                setSpeechText(event.results[0][0].transcript.toLowerCase())
+                speechButtonRef.current.disabled = false
             }
-        })
-
-        context.speechRec.onresult = function(event) {
-            // The SpeechRecognitionEvent results property returns a SpeechRecognitionResultList object
-            // The SpeechRecognitionResultList object contains SpeechRecognitionResult objects.
-            // It has a getter so it can be accessed like an array
-            // The first [0] returns the SpeechRecognitionResult at position 0.
-            // Each SpeechRecognitionResult object contains SpeechRecognitionAlternative objects that contain individual results.
-            // These also have getters so they can be accessed like arrays.
-            // The second [0] returns the SpeechRecognitionAlternative at position 0.
-            // We then return the transcript property of the SpeechRecognitionAlternative object 
-            var speechResult = event.results[0][0].transcript.toLowerCase();
-            setSpeechText(speechResult + ' (with confidence ' + Math.ceil(event.results[0][0].confidence * 100) + '%)')
-            speechButtonRef.current.disabled = false
         }
 
-        context.speechRec.onspeechend = function () {
-            context.speechRec.stop();
-        }
-    }, [context.db])
+    }, [context.db, context.speechRec])
 
     // set up WebRTC peer connection with the necessary listeners
     const initializePeerConnection = (pc) => {
@@ -232,7 +210,7 @@ const Video = (props) => {
             })
             .then(roomSnapshot => {
                 let room = roomSnapshot.id
-                context.db.collection('countries').doc(props.country).collection('rooms').add({room})
+                context.db.collection('countries').doc(props.country).collection('rooms').add({ room })
                 writeRoom = roomSnapshot.id
 
                 initializePeerConnection(pc)
@@ -251,7 +229,7 @@ const Video = (props) => {
                 return context.db.collection('rooms').add({})
             }).then(snapshot => {
                 let room = snapshot.id
-                context.db.collection('countries').doc(props.country).collection('rooms').add({room})
+                context.db.collection('countries').doc(props.country).collection('rooms').add({ room })
                 writeRoom = snapshot.id
             }).then(() => {
                 initializePeerConnection(pc)
@@ -339,22 +317,22 @@ const Video = (props) => {
 
             let writeRoomRef = writeRoom
             context.db.collection('rooms').doc(writeRoom).collection('candidates').get()
-            .then(candidates => {
-                candidates.forEach(candidate => {
-                    context.db.collection('rooms').doc(writeRoomRef).collection('candidates').doc(candidate.id).delete()
+                .then(candidates => {
+                    candidates.forEach(candidate => {
+                        context.db.collection('rooms').doc(writeRoomRef).collection('candidates').doc(candidate.id).delete()
+                    })
                 })
-            })
             context.db.collection('countries').doc(props.country).collection('rooms').get()
-            .then((countryRooms) => {
-                countryRooms.forEach(countryRoom => {
-                    if(countryRoom.data().room == writeRoomRef) {
-                        context.db.collection('countries').doc(props.country).collection('rooms').doc(countryRoom.id).delete()
-                    }
+                .then((countryRooms) => {
+                    countryRooms.forEach(countryRoom => {
+                        if (countryRoom.data().room == writeRoomRef) {
+                            context.db.collection('countries').doc(props.country).collection('rooms').doc(countryRoom.id).delete()
+                        }
+                    })
                 })
-            })
 
             // this will also set hangingUp back to false
-            initGlobal()
+            initRTC()
 
             // init React states
             setAudioState(false)
@@ -389,6 +367,12 @@ const Video = (props) => {
             console.log(
                 `ICE connection state change: ${pc.iceConnectionState}`);
         });
+    }
+
+    const onTranslationDone = (result) => {
+        let translations = result.translations
+        let text = `(Original: ${result.text}) (Chinese Trad: ${translations.get('zh-Hant')}) (Japanese: ${translations.get('ja')})`
+        setTranslatedText(text)
     }
 
     return (
@@ -434,7 +418,7 @@ const Video = (props) => {
                 context.speechRec.lang = languageRef.current.value
                 context.speechRec.start()
             }}>
-                 <select ref={languageRef}>
+                <select ref={languageRef}>
                     <option value="en-US">English</option>
                     <option value="zh-CN">中文</option>
                     <option value="ja-JP">日本語</option>
@@ -445,8 +429,26 @@ const Video = (props) => {
 
                 </select>
                 <button ref={speechButtonRef} type="submit">Speech</button>
-               <div style={{border: "1px solid black", width: '50%', margin: "auto", minHeight:"20vh"}}>
-                <h2>{speechText}</h2>
+                <div style={{ border: "1px solid black", width: '50%', margin: "auto", minHeight: "20vh" }}>
+                    <h2>{speechText}</h2>
+                </div>
+            </form>
+
+
+
+            <form onSubmit={e => {
+                e.preventDefault()
+                context.speechConfig.speechRecognitionLanguage = 'en-US'
+                context.speechConfig.addTargetLanguage('zh-Hant')
+                context.speechConfig.addTargetLanguage('ja')
+                console.log(context.speechConfig)
+                console.log(context.audioConfig)
+                let recognizer = new SpeechSDK.TranslationRecognizer(context.speechConfig, context.audioConfig)
+                recognizer.recognizeOnceAsync(onTranslationDone)
+            }}>
+                <button ref={translationRef} type="submit">Translate</button>
+                <div style={{ border: "1px solid black", width: '50%', margin: "auto", minHeight: "20vh" }}>
+                    <h2>{translatedText}</h2>
                 </div>
             </form>
 
