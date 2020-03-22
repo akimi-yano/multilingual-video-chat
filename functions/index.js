@@ -30,7 +30,12 @@ let tokenFn = (req, res) => {
         headers: customHeaders
     })
     .then(fetchRes => fetchRes.text())
-    .then(body => res.send(body))
+    .then(token => {
+        res.json({
+            region: speechConfig.region,
+            token: token
+        })
+    })
     .catch(error => console.log(error))
 }
 

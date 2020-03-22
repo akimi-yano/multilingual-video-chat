@@ -3,9 +3,13 @@ import Context from "../context/Context"
 import * as firebase from 'firebase'
 import * as SpeechSDK from "microsoft-cognitiveservices-speech-sdk"
 import firebaseConfig from "../config/firebaseConfig.js"
-import apiConfig from "../config/apiConfig.js"
 
 const SpeechRecognition = window.webkitSpeechRecognition;
+
+// dev
+const tokenUrl = `http://localhost:5001/${firebaseConfig.projectId}/us-central1/token`
+// deployed
+// const tokenUrl: `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net/token`,
 
 const Contexts = (props) => {
     // user name
@@ -39,10 +43,10 @@ const Contexts = (props) => {
     }
 
     const setupTranslator = () => {
-        window.fetch(apiConfig.tokenUrl)
-        .then(res => res.text())
-        .then(token => {
-            setSpeechConfig(SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(token, apiConfig.tokenServiceRegion))
+        window.fetch(tokenUrl)
+        .then(res => res.json())
+        .then(body => {
+            setSpeechConfig(SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(body.token, body.region))
             setAudioConfig(SpeechSDK.AudioConfig.fromDefaultMicrophoneInput())
         })
     }
