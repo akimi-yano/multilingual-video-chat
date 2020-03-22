@@ -4,6 +4,7 @@ import Context from '../context/Context'
 import { resolve } from 'dns';
 import { navigate } from '@reach/router';
 
+
 // WebRTC peer connection configuration
 const configuration = {
     iceServers: [
@@ -49,14 +50,19 @@ const Video = (props) => {
     // refs for video stream as srcObject cannot be set by using React states
     const localVideoRef = useRef(null)
     const remoteVideoRef = useRef(null)
+    const speechButtonRef = useRef(null)
+    const languageRef = useRef(null)
 
     // Standard React states
     const [audioState, setAudioState] = useState(false)
     const [videoState, setVideoState] = useState(false)
     const [chatLogState, setChatLogState] = useState([])
     const [chatText, setChatText] = useState("")
-
+    const [speechText, setSpeechText] = useState("")
     useEffect(() => {
+        if (!context.db) {
+            return
+        }
         context.db.collection('countries').doc(props.country).collection('rooms').get()
         .then(countryRoomsSnapshot => {
             if (countryRoomsSnapshot.docs.length < 1) {
@@ -68,7 +74,25 @@ const Video = (props) => {
                 console.log('country is full: ', countryRoomsSnapshot.docs)
             }
         })
-    }, [])
+
+        context.speechRec.onresult = function(event) {
+            // The SpeechRecognitionEvent results property returns a SpeechRecognitionResultList object
+            // The SpeechRecognitionResultList object contains SpeechRecognitionResult objects.
+            // It has a getter so it can be accessed like an array
+            // The first [0] returns the SpeechRecognitionResult at position 0.
+            // Each SpeechRecognitionResult object contains SpeechRecognitionAlternative objects that contain individual results.
+            // These also have getters so they can be accessed like arrays.
+            // The second [0] returns the SpeechRecognitionAlternative at position 0.
+            // We then return the transcript property of the SpeechRecognitionAlternative object 
+            var speechResult = event.results[0][0].transcript.toLowerCase();
+            setSpeechText(speechResult + ' (with confidence ' + Math.ceil(event.results[0][0].confidence * 100) + '%)')
+            speechButtonRef.current.disabled = false
+        }
+
+        context.speechRec.onspeechend = function () {
+            context.speechRec.stop();
+        }
+    }, [context.db])
 
     // set up WebRTC peer connection with the necessary listeners
     const initializePeerConnection = (pc) => {
@@ -401,6 +425,29 @@ const Video = (props) => {
             <form onSubmit={sendChannelMessage}>
                 <input type="text" onChange={e => setChatText(e.target.value)} value={chatText} />
                 <button type="submit">Send</button>
+            </form>
+
+
+            <form onSubmit={e => {
+                e.preventDefault()
+                speechButtonRef.current.disabled = true
+                context.speechRec.lang = languageRef.current.value
+                context.speechRec.start()
+            }}>
+                 <select ref={languageRef}>
+                    <option value="en-US">English</option>
+                    <option value="zh-CN">中文</option>
+                    <option value="ja-JP">日本語</option>
+                    <option value="es-SP">español</option>
+                    <option value="fr-FR">français</option>
+                    <option value="pt-PT">português</option>
+                    <option value="ru-RU">русский</option>
+
+                </select>
+                <button ref={speechButtonRef} type="submit">Speech</button>
+               <div style={{border: "1px solid black", width: '50%', margin: "auto", minHeight:"20vh"}}>
+                <h2>{speechText}</h2>
+                </div>
             </form>
 
             <div id="videos">
