@@ -15,7 +15,7 @@ const NameForm = () => {
         navigate('/chat')
     }
     return (
-        <div>
+        <div id="nameForm">
             <h2>What's your name?</h2>
             <form onSubmit={onSubmitHandler}>
                 <input onChange={onChangeHandler} type="text" value={formState} />

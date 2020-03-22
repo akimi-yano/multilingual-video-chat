@@ -1,7 +1,7 @@
 import React,{useEffect, useState} from 'react'
 import Context from "../context/Context"
 import * as firebase from 'firebase'
-import firebaseConfig from "../firebaseConfig.js"
+import firebaseConfig from "../config/firebaseConfig.js"
 
 
 

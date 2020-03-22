@@ -1,7 +1,8 @@
 
-import React, { useState, useRef, useContext } from 'react';
+import React, { useState, useRef, useContext, useEffect } from 'react';
 import Context from '../context/Context'
 import { resolve } from 'dns';
+import { navigate } from '@reach/router';
 
 // WebRTC peer connection configuration
 const configuration = {
@@ -24,9 +25,6 @@ let makingOffer
 let polite
 let ignoreOffer
 let hangingUp
-
-// Room data is also tied to signaling, but we need to also maintain a React state
-// copy for UI rendering
 let writeRoom
 let readRoom
 
@@ -44,13 +42,9 @@ const initGlobal = () => {
 }
 initGlobal()
 
-const Video = () => {
+const Video = (props) => {
     // context stores the db connection
     const context = useContext(Context)
-
-    // the React state counterpart to writeRoom and readRoom, for UI needs
-    const [writeRoomState, setWriteRoomState] = useState(null)
-    const [readRoomState, setReadRoomState] = useState(null)
 
     // refs for video stream as srcObject cannot be set by using React states
     const localVideoRef = useRef(null)
@@ -61,6 +55,20 @@ const Video = () => {
     const [videoState, setVideoState] = useState(false)
     const [chatLogState, setChatLogState] = useState([])
     const [chatText, setChatText] = useState("")
+
+    useEffect(() => {
+        context.db.collection('countries').doc(props.country).collection('rooms').get()
+        .then(countryRoomsSnapshot => {
+            if (countryRoomsSnapshot.docs.length < 1) {
+                createRoom()
+            } else if (countryRoomsSnapshot.docs.length == 1) {
+                readRoom = countryRoomsSnapshot.docs[0].data().room
+                joinRoom()
+            } else {
+                console.log('country is full: ', countryRoomsSnapshot.docs)
+            }
+        })
+    }, [])
 
     // set up WebRTC peer connection with the necessary listeners
     const initializePeerConnection = (pc) => {
@@ -120,7 +128,6 @@ const Video = () => {
 
             if (snapshot.data().readRoom && !readRoom) {
                 readRoom = snapshot.data().readRoom
-                setReadRoomState(readRoom)
                 initializeReadRoomOnSnapshots(pc)
             }
         })
@@ -200,8 +207,9 @@ const Video = () => {
                 return context.db.collection('rooms').add({ description })
             })
             .then(roomSnapshot => {
+                let room = roomSnapshot.id
+                context.db.collection('countries').doc(props.country).collection('rooms').add({room})
                 writeRoom = roomSnapshot.id
-                setWriteRoomState(writeRoom)
 
                 initializePeerConnection(pc)
                 initializeWriteRoomOnSnapshots(pc)
@@ -218,8 +226,9 @@ const Video = () => {
                 offerSnapshot = snapshot
                 return context.db.collection('rooms').add({})
             }).then(snapshot => {
+                let room = snapshot.id
+                context.db.collection('countries').doc(props.country).collection('rooms').add({room})
                 writeRoom = snapshot.id
-                setWriteRoomState(writeRoom)
             }).then(() => {
                 initializePeerConnection(pc)
                 let offer = offerSnapshot.data().description
@@ -302,30 +311,36 @@ const Video = () => {
         remoteVideoRef.current.srcObject = null
         pc.close()
         if (writeRoom) {
-            context.db.collection('rooms').doc(writeRoom).collection('candidates').get()
-                .then(candidates => {
-                    candidates.forEach(candidate => {
-                        context.db.collection('rooms').doc(writeRoom).collection('candidates').doc(candidate.id).delete()
-                    })
-                })
-                .then(() => {
-                    return context.db.collection('rooms').doc(writeRoom).delete()
-                })
-                .then(() => {
-                    // this will also set hangingUp back to false
-                    initGlobal()
+            context.db.collection('rooms').doc(writeRoom).delete()
 
-                    // init React states
-                    setWriteRoomState(null)
-                    setReadRoomState(null)
-                    setAudioState(false)
-                    setVideoState(false)
-                    setChatLogState([])
-                    setChatText("")
-                    // we don't want to reset the Refs since they are tied to html tags
-                    // localVideoRef.current = null
-                    // remoteVideoRef.current = null
+            let writeRoomRef = writeRoom
+            context.db.collection('rooms').doc(writeRoom).collection('candidates').get()
+            .then(candidates => {
+                candidates.forEach(candidate => {
+                    context.db.collection('rooms').doc(writeRoomRef).collection('candidates').doc(candidate.id).delete()
                 })
+            })
+            context.db.collection('countries').doc(props.country).collection('rooms').get()
+            .then((countryRooms) => {
+                countryRooms.forEach(countryRoom => {
+                    if(countryRoom.data().room == writeRoomRef) {
+                        context.db.collection('countries').doc(props.country).collection('rooms').doc(countryRoom.id).delete()
+                    }
+                })
+            })
+
+            // this will also set hangingUp back to false
+            initGlobal()
+
+            // init React states
+            setAudioState(false)
+            setVideoState(false)
+            setChatLogState([])
+            setChatText("")
+            // we don't want to reset the Refs since they are tied to html tags
+            // localVideoRef.current = null
+            // remoteVideoRef.current = null
+            navigate('/chat')
         }
     }
 
@@ -352,31 +367,14 @@ const Video = () => {
         });
     }
 
-    const setReadRoom = (e) => {
-        readRoom = e.target.value
-        setReadRoomState(readRoom)
-    }
-
     return (
-        <div>
-            <h1>♥ Welcome to Secret Video Chat, {context.name}! ♥</h1>
-            <div>Your read room ID is {readRoomState}</div>
-            <div>Your write room ID is {writeRoomState}</div>
+        <div id="chatRoom">
+            <h1>♥ Welcome to {props.country} Chat Room, {context.name}! ♥</h1>
             <div id="buttons">
                 <button onClick={toggleAudio} id="toggleAudio">Turn {audioState ? "Off" : "On"} Audio</button>
                 <button onClick={toggleVideo} id="toggleVideo">Turn {videoState ? "Off" : "On"} Video</button>
                 <button onClick={createRoom} id="createBtn">Create Room</button>
                 <button onClick={hangUp} id="hangupBtn">End Chat</button>
-            </div>
-            <div>
-                <h2 id="my-dialog-title">Join Room</h2>
-                <div id="my-dialog-content">
-                    Enter ID for Room to Join:
-                <div>
-                        <input type="text" id="room-id" onChange={setReadRoom} />
-                        <button onClick={joinRoom} id="joinBtn">Join Room</button>
-                    </div>
-                </div>
             </div>
 
             <div>

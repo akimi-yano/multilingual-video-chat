@@ -36,3 +36,79 @@
     transform: rotate(360deg);
   }
 }
+
+#chatRoom{
+  z-index:100000;
+  position: absolute;
+  width:90%;
+  height: 75vh;
+  text-align: center; 
+  background-color: white;
+  margin: 15vh 5%;
+  vertical-align: middle;
+  
+}
+#nameForm{
+  z-index:100000;
+  position: absolute;
+  width:100%;
+  height: 100vh;
+  text-align: center; 
+  background-color: white;
+  /* margin: 15vh 5%; */
+  vertical-align: middle;
+}
+#map {
+  position: absolute;
+  top: 64px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  z-index: 1; }
+
+/*Transitions*/
+.fallingFadeIn-enter {
+  opacity: 0.01;
+  top: -20px;
+  position: relative; }
+
+.fallingFadeIn-enter.fallingFadeIn-enter-active {
+  opacity: 1;
+  top: 0;
+  position: relative;
+  transition: opacity 500ms ease-in, top 500ms linear; }
+
+/*Transitions End*/
+
+/************************** start of country transition ***********************/
+.countryTransition-appear {
+  opacity: 0.01; }
+
+.countryTransition-appear.countryTransition-appear-active {
+  opacity: 1;
+  transition: opacity .5s ease-in; }
+
+.countryTransitionMsg {
+  position: absolute;
+  top: 25vh;
+  width: 100%;
+  z-index: 99;
+  text-align: center; 
+}
+  .countryTransitionMsg img {
+    clip-path: circle(92px at center);
+    width: 400px; 
+  }
+
+.countryTransitionMsg h1 {
+  text-transform: uppercase;
+  font-size: 3em;
+  letter-spacing: 0.4em;
+  font-weight: bold;
+  margin-top: -30px;
+  text-shadow: 0px 0px 30px white;
+  /*color: gray; */
+  /*font-family: 'Lato', sans-serif;*/ }
+
+/***************************** end of country transition *********************/
