@@ -6,7 +6,8 @@ import Chat from './components/Chat'
 import Contexts from './components/Contexts';
 import Rooms from './components/Rooms';
 import Map from './components/Map'
-import Transition from './components/Transition'
+import EnterChat from './components/EnterChat'
+import LeaveChat from './components/LeaveChat'
 
 import 'mapbox.js/dist/mapbox.css'
 
@@ -22,7 +23,8 @@ function App() {
       <Router>
       <NameForm path="/"/>
       <Chat path="/chat/:country"/>
-      <Transition path="/transition/:country" />
+      <EnterChat path="/enter/:country" />
+      <LeaveChat path="/leave/:country" />
       </Router>
       </Contexts>
     </div>

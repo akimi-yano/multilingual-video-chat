@@ -11,7 +11,6 @@ let polite = false
 let ignoreOffer = false
 let hangingUp = false
 let channel = null
-let chatLog = []
 let writeRoom = null
 let readRoom = null
 
@@ -48,7 +47,7 @@ const Chat = (props) => {
                     } else {
                         console.log('country is full: ', countryRoomsSnapshot.docs)
                         // TODO uncomment
-                        // navigate('/chat')
+                        // navigate(`/leave/${props.country}`)
                     }
                 })
         }
@@ -58,11 +57,17 @@ const Chat = (props) => {
         // onresult event handler for Webkit Speech
         if (context.webkitSpeech) {
             context.webkitSpeech.onresult = function (event) {
-                setSpeechText(event.results[0][0].transcript.toLowerCase())
+                let speechText = event.results[0][0].transcript.toLowerCase()
+                setSpeechText(speechText)
+                let speechObj = { sender: context.name, text: speechText }
+                if (channel) {
+                    channel.send(JSON.stringify(speechObj))
+                }
+                setChatLogState([...chatLogState, speechObj])
                 speechButtonRef.current.disabled = false
             }
         }
-    }, [context.webkitSpeech])
+    }, [context.webkitSpeech, chatLogState]) // TODO debug why listening on setChatLogState doesn't work
 
     // set up WebRTC peer connection with the necessary listeners
     const initializePeerConnection = () => {
@@ -247,7 +252,7 @@ const Chat = (props) => {
             })
             context.db.collection('rooms').doc(writeRoom).delete()
         }
-        navigate('/chat')
+        navigate(`/leave/${props.country}`)
     }
 
     const registerPeerConnectionListeners = () => {
@@ -276,19 +281,18 @@ const Chat = (props) => {
     // event hiandler for channel received
     const onChannelMessage = event => {
         let chatObj = JSON.parse(event.data)
-        chatLog = [...chatLog, chatObj]
-        setChatLogState(chatLog)
+        setChatLogState([...chatLogState, chatObj])
     }
 
-    // event handler for message sending
-    const sendChannelMessage = e => {
+    // event handler for chat sending
+    const sendChatMessage = e => {
         e.preventDefault()
-
         let chatObj = { sender: context.name, text: chatText }
-        channel.send(JSON.stringify(chatObj))
+        if (channel) {
+            channel.send(JSON.stringify(chatObj))
+        }
+        setChatLogState([...chatLogState, chatObj])
         setChatText("")
-        chatLog = [...chatLog, chatObj]
-        setChatLogState(chatLog)
     }
 
     // prompt user for camera and video permissions
@@ -328,9 +332,13 @@ const Chat = (props) => {
 
     // event handler for translation
     const onTranslationDone = (result) => {
-        console.log(result.translations, translatedLangRef.current.value)
-        let text = result.translations.get(translatedLangRef.current.value)
-        setTranslatedText(text)
+        let translationText = result.translations.get(translatedLangRef.current.value)
+        setTranslatedText(translationText)
+        let translationObj = { sender: context.name, text: translationText }
+        if (channel) {
+            channel.send(JSON.stringify(translationObj))
+        }
+        setChatLogState([...chatLogState, translationObj])
         translationButtonRef.current.disabled = false
     }
 
@@ -365,7 +373,7 @@ const Chat = (props) => {
 
                 }
             </div>
-            <form onSubmit={sendChannelMessage}>
+            <form onSubmit={sendChatMessage}>
                 <input type="text" onChange={e => setChatText(e.target.value)} value={chatText} />
                 <button type="submit">Send</button>
             </form>

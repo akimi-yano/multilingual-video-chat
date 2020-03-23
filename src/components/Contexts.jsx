@@ -7,7 +7,7 @@ import firebaseConfig from "../config/firebaseConfig.js"
 // dev
 const tokenUrl = `http://localhost:5001/${firebaseConfig.projectId}/us-central1/token`
 // deployed
-// const tokenUrl: `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net/token`,
+// const tokenUrl = `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net/token`
 
 const Contexts = (props) => {
     // user name

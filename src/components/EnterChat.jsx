@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import { navigate } from "@reach/router"
-const Transition = (props) => {
+const EnterChat = (props) => {
 
     const timeoutID = window.setTimeout(changeReactComponent, 4000);
 
@@ -26,4 +26,4 @@ const Transition = (props) => {
     )
 }
 
-export default Transition
+export default EnterChat

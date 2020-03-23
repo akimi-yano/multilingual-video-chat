@@ -65,7 +65,7 @@ const Map = (props) => {
             map.setView([16.541430, 7.558594], 2)
         }
 
-        navigate(`/transition/${clickEvent.target.feature.properties.name}`)
+        navigate(`/enter/${clickEvent.target.feature.properties.name}`)
     }
 
     const countriesOnEachFeature = (feature, layer) => {
