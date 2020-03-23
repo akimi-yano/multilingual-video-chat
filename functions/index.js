@@ -5,23 +5,6 @@ const cors = require('cors')({
 })
 const speechConfig = require("./config/speechConfig.js")
 
-// Create and Deploy Your First Cloud Functions
-// https://firebase.google.com/docs/functions/write-firebase-functions
-
-let translateFn = (req, res) => {
-    let text = req.query.text
-    let fromLang = req.query.fromLang
-    let toLang = req.query.toLang
-    // TODO actually translate
-    res.json({'text': `Translated '${text}' from ${fromLang} to ${toLang} desuu!`})
-}
-
-exports.translate = functions.https.onRequest((req, res) => {
-    cors(req, res, () => {
-        translateFn(req, res)
-    });
-})
-
 let tokenFn = (req, res) => {
     let customHeaders = {}
     customHeaders[speechConfig.headerKey] = speechConfig.headerValue
@@ -39,6 +22,7 @@ let tokenFn = (req, res) => {
     .catch(error => console.log(error))
 }
 
+// need to wrap with cors - https://mhaligowski.github.io/blog/2017/03/10/cors-in-cloud-functions.html
 exports.token = functions.https.onRequest((req, res) => {
     cors(req, res, () => {
         tokenFn(req, res)

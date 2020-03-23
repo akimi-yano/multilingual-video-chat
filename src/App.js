@@ -2,7 +2,7 @@ import './App.css';
 import React,{createContext} from 'react'
 import {Router} from '@reach/router'
 import NameForm from './components/NameForm'
-import Video from './components/Video'
+import Chat from './components/Chat'
 import Contexts from './components/Contexts';
 import Rooms from './components/Rooms';
 import Map from './components/Map'
@@ -21,7 +21,7 @@ function App() {
       <Map/>
       <Router>
       <NameForm path="/"/>
-      <Video path="/chat/:country"/>
+      <Chat path="/chat/:country"/>
       <Transition path="/transition/:country" />
       </Router>
       </Contexts>

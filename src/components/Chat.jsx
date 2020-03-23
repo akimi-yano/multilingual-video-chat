@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useContext, useEffect } from 'react';
 import Context from '../context/Context'
 import * as SpeechSDK from "microsoft-cognitiveservices-speech-sdk"
@@ -6,49 +5,38 @@ import { navigate } from '@reach/router';
 import staticConfig from "../staticConfig.js"
 
 // Keep WebRTC goodies in global scope
-let pc
-let channel
-let chatLog
-let makingOffer
-let polite
-let ignoreOffer
-let hangingUp
-let writeRoom
-let readRoom
+let pc = null
+let makingOffer = false
+let polite = false
+let ignoreOffer = false
+let hangingUp = false
+let channel = null
+let chatLog = []
+let writeRoom = null
+let readRoom = null
 
-const initRTC = () => {
-    pc = new RTCPeerConnection(staticConfig.rtcConfig)
-    channel = null
-    chatLog = []
-    makingOffer = false
-    polite = false
-    ignoreOffer = false
-    hangingUp = false
-
-    writeRoom = null
-    readRoom = null
-}
-initRTC()
-
-const Video = (props) => {
+const Chat = (props) => {
     // context stores the db connection
     const context = useContext(Context)
-
-    // refs for video stream as srcObject cannot be set by using React states
+    // refs for various HTML elements
     const localVideoRef = useRef(null)
     const remoteVideoRef = useRef(null)
     const speechButtonRef = useRef(null)
-    const languageRef = useRef(null)
-    const translationRef = useRef(null)
-
-    // Standard React states
+    const translationButtonRef = useRef(null)
+    const spokenLangRef = useRef(null)
+    const translatedLangRef = useRef(null)
+    // standard React states
     const [audioState, setAudioState] = useState(false)
     const [videoState, setVideoState] = useState(false)
     const [chatLogState, setChatLogState] = useState([])
     const [chatText, setChatText] = useState("")
     const [speechText, setSpeechText] = useState("")
     const [translatedText, setTranslatedText] = useState("")
+    // state to toggle UI buttons/views
+    const [pcState, setPcState] = useState(null)
+
     useEffect(() => {
+        // When entering a Chat, either create a new room or join one
         if (context.db) {
             context.db.collection('countries').doc(props.country).collection('rooms').get()
                 .then(countryRoomsSnapshot => {
@@ -59,28 +47,33 @@ const Video = (props) => {
                         joinRoom()
                     } else {
                         console.log('country is full: ', countryRoomsSnapshot.docs)
+                        // TODO uncomment
+                        // navigate('/chat')
                     }
                 })
         }
+    }, [context.db])
 
-        if (context.speechRec) {
-            context.speechRec.onresult = function (event) {
+    useEffect(() => {
+        // onresult event handler for Webkit Speech
+        if (context.webkitSpeech) {
+            context.webkitSpeech.onresult = function (event) {
                 setSpeechText(event.results[0][0].transcript.toLowerCase())
                 speechButtonRef.current.disabled = false
             }
         }
-
-    }, [context.db, context.speechRec])
+    }, [context.webkitSpeech])
 
     // set up WebRTC peer connection with the necessary listeners
-    const initializePeerConnection = (pc) => {
-        // set up listeners for handy console logging
-        registerPeerConnectionListeners(pc);
-
-        // initialize the remote video stream
+    const initializePeerConnection = () => {
+        pc = new RTCPeerConnection(staticConfig.rtcConfig)
+        setPcState(pc)
+        // inits
         remoteVideoRef.current.srcObject = new MediaStream();
+        // handy console logging
+        registerPeerConnectionListeners();
 
-        // handle any negotiations needed (track, data channel changes)
+        // event handler for negotiations (track, data channel adds)
         pc.onnegotiationneeded = () => {
             makingOffer = true;
             pc.setLocalDescription()
@@ -90,55 +83,48 @@ const Video = (props) => {
                 })
                 .finally(() => makingOffer = false)
         };
-
-        // handle ice candidate updates
+        // event handler for ice candidate updates
         pc.onicecandidate = (event) => {
             if (event.candidate) {
                 context.db.collection('rooms').doc(writeRoom).collection('candidates').add(event.candidate.toJSON());
             }
         }
-
-        // handle track changes
+        // event handler for track received
         pc.ontrack = (event) => {
             event.streams[0].getTracks().forEach(track => {
                 remoteVideoRef.current.srcObject.addTrack(track)
             })
         }
-
-        // handle channel changes
+        // event handler for channel received
         pc.ondatachannel = (event) => {
             channel = event.channel;
             channel.onmessage = onChannelMessage;
         }
-    }
 
-    // Initializer for listening on write room snapshots.
-    // The only change we ever listen on the write room is for receiving the read room id.
-    // once it is set, we will ignore any future room updates.
-    const initializeWriteRoomOnSnapshots = (pc) => {
+        // Initializer for listening on write room snapshots.
+        // The only change we ever listen on the write room is for receiving the read room id.
+        // once it is set, we will ignore any future room updates.
         context.db.collection('rooms').doc(writeRoom).onSnapshot(snapshot => {
             // ignore your own writes
             let myWrite = snapshot.metadata.hasPendingWrites ? true : false;
             if (myWrite) {
                 return
             }
-
-            // if hanging up, there may be writes on the other end to delete
-            if (hangingUp || !snapshot.exists) {
+            // if hanging up
+            if (hangingUp) {
                 return
             }
 
-            if (snapshot.data().readRoom && !readRoom) {
+            if (!readRoom && snapshot.data().readRoom) {
                 readRoom = snapshot.data().readRoom
                 initializeReadRoomOnSnapshots(pc)
             }
         })
-
     }
 
     // Initializer for listening on read room snapshots.
     // This cannot be set until the read room id is known.
-    const initializeReadRoomOnSnapshots = (pc) => {
+    const initializeReadRoomOnSnapshots = () => {
         // listen for new offers/answers
         context.db.collection('rooms').doc(readRoom).onSnapshot(snapshot => {
             // ignore your own writes
@@ -175,12 +161,6 @@ const Video = (props) => {
 
         // listen for new ice candidates
         context.db.collection('rooms').doc(readRoom).collection('candidates').onSnapshot(snapshot => {
-            // ignore your own writes
-            let myWrite = snapshot.metadata.hasPendingWrites ? true : false;
-            if (myWrite) {
-                return
-            }
-
             // if hanging up, there may be writes on the other end to delete
             if (hangingUp || !snapshot.exists) {
                 return
@@ -198,24 +178,15 @@ const Video = (props) => {
     const createRoom = () => {
         // the creator of the room is destined to be polite
         polite = true
-        channel = pc.createDataChannel("sendChannel")
-        channel.onmessage = onChannelMessage
 
-        let offer
-        pc.createOffer()
-            .then(offerObj => {
-                offer = offerObj
-                let description = offer.toJSON()
-                return context.db.collection('rooms').add({ description })
-            })
+        context.db.collection('rooms').add({})
             .then(roomSnapshot => {
                 let room = roomSnapshot.id
+                writeRoom = room
                 context.db.collection('countries').doc(props.country).collection('rooms').add({ room })
-                writeRoom = roomSnapshot.id
-
-                initializePeerConnection(pc)
-                initializeWriteRoomOnSnapshots(pc)
-                pc.setLocalDescription(offer)
+                initializePeerConnection()
+                channel = pc.createDataChannel("sendChannel")
+                channel.onmessage = onChannelMessage
             })
     }
 
@@ -232,7 +203,7 @@ const Video = (props) => {
                 context.db.collection('countries').doc(props.country).collection('rooms').add({ room })
                 writeRoom = snapshot.id
             }).then(() => {
-                initializePeerConnection(pc)
+                initializePeerConnection()
                 let offer = offerSnapshot.data().description
                 return pc.setRemoteDescription(new RTCSessionDescription((offer)))
             }).then(() => pc.setLocalDescription())
@@ -241,112 +212,45 @@ const Video = (props) => {
                 context.db.collection('rooms').doc(writeRoom).update({ description })
             })
             .then(() => {
-                initializeReadRoomOnSnapshots(pc)
+                initializeReadRoomOnSnapshots()
 
                 let updated = { readRoom: writeRoom }
                 context.db.collection('rooms').doc(readRoom).update(updated)
             })
     }
 
-    // handle channel message recieving
-    const onChannelMessage = event => {
-        let chatObj = JSON.parse(event.data)
-        chatLog = [...chatLog, chatObj]
-        setChatLogState(chatLog)
-    }
-
-    const sendChannelMessage = e => {
-        e.preventDefault()
-
-        let chatObj = { sender: context.name, text: chatText }
-        channel.send(JSON.stringify(chatObj))
-        setChatText("")
-        chatLog = [...chatLog, chatObj]
-        setChatLogState(chatLog)
-    }
-
-    const openUserMedia = () => {
-        // only allow this to be called once
-        if (localVideoRef.current.srcObject) {
-            return new Promise((resolve) => resolve())
-        }
-
-        return navigator.mediaDevices.getUserMedia(
-            { audio: true, video: true })
-            .then(stream => {
-                localVideoRef.current.srcObject = stream
-                stream.getTracks().forEach(track => {
-                    track.enabled = false
-                    pc.addTrack(track, stream)
-                });
-            })
-    }
-
-    const toggleAudio = () => {
-        let newAudioState = !audioState
-        setAudioState(newAudioState)
-        openUserMedia()
-            .then(() => {
-                let stream = localVideoRef.current.srcObject
-                stream.getAudioTracks().forEach(track => track.enabled = newAudioState)
-            })
-    }
-    const toggleVideo = () => {
-        let newVideoState = !videoState
-        setVideoState(newVideoState)
-        openUserMedia()
-            .then(() => {
-                let stream = localVideoRef.current.srcObject
-                stream.getVideoTracks().forEach(track => track.enabled = newVideoState)
-            })
-    }
-
-    const hangUp = (e) => {
+    const hangUp = () => {
         hangingUp = true
         if (localVideoRef.current.srcObject) {
             localVideoRef.current.srcObject.getTracks().forEach(track => track.stop())
         }
-        localVideoRef.current.srcObject = null
         if (remoteVideoRef.current.srcObject) {
             remoteVideoRef.current.srcObject.getTracks().forEach(track => track.stop())
         }
-        remoteVideoRef.current.srcObject = null
-        pc.close()
-        if (writeRoom) {
-            context.db.collection('rooms').doc(writeRoom).delete()
-
-            let writeRoomRef = writeRoom
-            context.db.collection('rooms').doc(writeRoom).collection('candidates').get()
-                .then(candidates => {
-                    candidates.forEach(candidate => {
-                        context.db.collection('rooms').doc(writeRoomRef).collection('candidates').doc(candidate.id).delete()
-                    })
-                })
-            context.db.collection('countries').doc(props.country).collection('rooms').get()
-                .then((countryRooms) => {
-                    countryRooms.forEach(countryRoom => {
-                        if (countryRoom.data().room == writeRoomRef) {
-                            context.db.collection('countries').doc(props.country).collection('rooms').doc(countryRoom.id).delete()
-                        }
-                    })
-                })
-
-            // this will also set hangingUp back to false
-            initRTC()
-
-            // init React states
-            setAudioState(false)
-            setVideoState(false)
-            setChatLogState([])
-            setChatText("")
-            // we don't want to reset the Refs since they are tied to html tags
-            // localVideoRef.current = null
-            // remoteVideoRef.current = null
-            navigate('/chat')
+        if (pc) {
+            pc.close()
         }
+        if (writeRoom) {
+            context.db.collection('countries').doc(props.country).collection('rooms').get()
+            .then((countryRooms) => {
+                countryRooms.forEach(countryRoom => {
+                    if (countryRoom.data().room == writeRoom) {
+                        context.db.collection('countries').doc(props.country).collection('rooms').doc(countryRoom.id).delete()
+                    }
+                })
+            })
+            context.db.collection('rooms').doc(writeRoom).collection('candidates').get()
+            .then(candidates => {
+                candidates.forEach(candidate => {
+                    context.db.collection('rooms').doc(writeRoom).collection('candidates').doc(candidate.id).delete()
+                })
+            })
+            context.db.collection('rooms').doc(writeRoom).delete()
+        }
+        navigate('/chat')
     }
 
-    const registerPeerConnectionListeners = (pc) => {
+    const registerPeerConnectionListeners = () => {
         pc.addEventListener('icegatheringstatechange', () => {
             console.log(
                 `ICE gathering state changed: ${pc.iceGatheringState}`);
@@ -369,18 +273,73 @@ const Video = (props) => {
         });
     }
 
+    // event hiandler for channel received
+    const onChannelMessage = event => {
+        let chatObj = JSON.parse(event.data)
+        chatLog = [...chatLog, chatObj]
+        setChatLogState(chatLog)
+    }
+
+    // event handler for message sending
+    const sendChannelMessage = e => {
+        e.preventDefault()
+
+        let chatObj = { sender: context.name, text: chatText }
+        channel.send(JSON.stringify(chatObj))
+        setChatText("")
+        chatLog = [...chatLog, chatObj]
+        setChatLogState(chatLog)
+    }
+
+    // prompt user for camera and video permissions
+    const openUserMedia = () => {
+        // only allow this to be called once
+        if (localVideoRef.current.srcObject) {
+            return new Promise((resolve) => resolve())
+        }
+        return navigator.mediaDevices.getUserMedia(
+            { audio: true, video: true })
+            .then(stream => {
+                localVideoRef.current.srcObject = stream
+                stream.getTracks().forEach(track => {
+                    track.enabled = false
+                    pc.addTrack(track, stream)
+                });
+            })
+    }
+
+    // toggle media enabled state
+    const toggleTrack = (trackType) => {
+        let newState
+        if (trackType == 'audio') {
+            newState = !audioState
+            setAudioState(newState)
+        } else {
+            newState = !videoState
+            setVideoState(newState)
+        }
+        openUserMedia()
+            .then(() => {
+                let stream = localVideoRef.current.srcObject
+                let tracks = trackType == 'audio' ? stream.getAudioTracks() : stream.getVideoTracks()
+                tracks.forEach(track => track.enabled = newState)
+            })
+    }
+
+    // event handler for translation
     const onTranslationDone = (result) => {
-        let translations = result.translations
-        let text = `(Original: ${result.text}) (Chinese Trad: ${translations.get('zh-Hant')}) (Japanese: ${translations.get('ja')})`
+        console.log(result.translations, translatedLangRef.current.value)
+        let text = result.translations.get(translatedLangRef.current.value)
         setTranslatedText(text)
+        translationButtonRef.current.disabled = false
     }
 
     return (
         <div id="chatRoom">
             <h1>♥ Welcome to {props.country} Chat Room, {context.name}! ♥</h1>
             <div id="buttons">
-                <button onClick={toggleAudio} id="toggleAudio">Turn {audioState ? "Off" : "On"} Audio</button>
-                <button onClick={toggleVideo} id="toggleVideo">Turn {videoState ? "Off" : "On"} Video</button>
+                <button onClick={e => toggleTrack('audio') } id="toggleAudio" disabled={!pcState}>Turn {audioState ? "Off" : "On"} Audio</button>
+                <button onClick={e => toggleTrack('video')} id="toggleVideo" disabled={!pcState}>Turn {videoState ? "Off" : "On"} Video</button>
                 <button onClick={createRoom} id="createBtn">Create Room</button>
                 <button onClick={hangUp} id="hangupBtn">End Chat</button>
             </div>
@@ -412,13 +371,9 @@ const Video = (props) => {
             </form>
 
 
-            <form onSubmit={e => {
-                e.preventDefault()
-                speechButtonRef.current.disabled = true
-                context.speechRec.lang = languageRef.current.value
-                context.speechRec.start()
-            }}>
-                <select ref={languageRef}>
+            <div>
+                <label>Spoken Language</label>
+                <select ref={spokenLangRef}>
                     <option value="en-US">English</option>
                     <option value="zh-CN">中文</option>
                     <option value="ja-JP">日本語</option>
@@ -426,27 +381,40 @@ const Video = (props) => {
                     <option value="fr-FR">français</option>
                     <option value="pt-PT">português</option>
                     <option value="ru-RU">русский</option>
-
                 </select>
-                <button ref={speechButtonRef} type="submit">Speech</button>
+            </div>
+            <div>
+                <label>Translated Language</label>
+                <select ref={translatedLangRef}>
+                    <option value="en">English</option>
+                    <option value="zh-Hant">中文</option>
+                    <option value="ja">日本語</option>
+                    <option value="es">español</option>
+                    <option value="fr">français</option>
+                    <option value="pt">português</option>
+                    <option value="ru">русский</option>
+                </select>
+            </div>
+            <form onSubmit={e => {
+                e.preventDefault()
+                speechButtonRef.current.disabled = true
+                context.webkitSpeech.lang = spokenLangRef.current.value
+                context.webkitSpeech.start()
+            }}>
+                <button ref={speechButtonRef} type="submit">Speak & Send</button>
                 <div style={{ border: "1px solid black", width: '50%', margin: "auto", minHeight: "20vh" }}>
                     <h2>{speechText}</h2>
                 </div>
             </form>
-
-
-
             <form onSubmit={e => {
                 e.preventDefault()
-                context.speechConfig.speechRecognitionLanguage = 'en-US'
-                context.speechConfig.addTargetLanguage('zh-Hant')
-                context.speechConfig.addTargetLanguage('ja')
-                console.log(context.speechConfig)
-                console.log(context.audioConfig)
+                translationButtonRef.current.disabled = true
+                context.speechConfig.speechRecognitionLanguage = spokenLangRef.current.value
+                context.speechConfig.addTargetLanguage(translatedLangRef.current.value)
                 let recognizer = new SpeechSDK.TranslationRecognizer(context.speechConfig, context.audioConfig)
                 recognizer.recognizeOnceAsync(onTranslationDone)
             }}>
-                <button ref={translationRef} type="submit">Translate</button>
+                <button ref={translationButtonRef} type="submit">Translate & Send</button>
                 <div style={{ border: "1px solid black", width: '50%', margin: "auto", minHeight: "20vh" }}>
                     <h2>{translatedText}</h2>
                 </div>
@@ -460,4 +428,4 @@ const Video = (props) => {
     );
 }
 
-export default Video
+export default Chat

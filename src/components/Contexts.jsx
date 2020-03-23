@@ -4,8 +4,6 @@ import * as firebase from 'firebase'
 import * as SpeechSDK from "microsoft-cognitiveservices-speech-sdk"
 import firebaseConfig from "../config/firebaseConfig.js"
 
-const SpeechRecognition = window.webkitSpeechRecognition;
-
 // dev
 const tokenUrl = `http://localhost:5001/${firebaseConfig.projectId}/us-central1/token`
 // deployed
@@ -17,14 +15,14 @@ const Contexts = (props) => {
     // firebase connection
     const [db, setDb] = useState(null)
     // speech recognition
-    const [speechRec, setSpeechRec] = useState(null);
+    const [webkitSpeech, setWebkitSpeech] = useState(null);
     // translation
     const [speechConfig, setSpeechConfig] = useState(null);
     const [audioConfig, setAudioConfig] = useState(null);
 
     useEffect(()=>{
         setupDb()
-        setupSpeechRec()
+        setupWebkitSpeech()
         setupTranslator()
     },[]) 
 
@@ -34,12 +32,12 @@ const Contexts = (props) => {
         setDb(firebase.firestore())
     }
 
-    const setupSpeechRec = () => {
-        let r = new SpeechRecognition()
-        r.onspeechend = function (event) {
-            r.stop();
+    const setupWebkitSpeech = () => {
+        let rec = new window.webkitSpeechRecognition()
+        rec.onspeechend = function (event) {
+            rec.stop();
         }
-        setSpeechRec(r)
+        setWebkitSpeech(rec)
     }
 
     const setupTranslator = () => {
@@ -53,7 +51,7 @@ const Contexts = (props) => {
 
     return (
         <div>
-            <Context.Provider value={{name, setName, db, speechRec, speechConfig, audioConfig}}>
+            <Context.Provider value={{name, setName, db, webkitSpeech, speechConfig, audioConfig}}>
                 {props.children}
             </Context.Provider>
         </div>
