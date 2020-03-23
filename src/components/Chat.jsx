@@ -4,6 +4,18 @@ import * as SpeechSDK from "microsoft-cognitiveservices-speech-sdk"
 import { navigate } from '@reach/router';
 import staticConfig from "../staticConfig.js"
 
+// Styling - Material US 
+import Button from '@material-ui/core/Button';
+import Icon from '@material-ui/core/Icon';
+import KeyboardVoiceIcon from '@material-ui/icons/KeyboardVoice';
+import { makeStyles } from '@material-ui/core/styles';
+
+const useStyles = makeStyles(theme => ({
+    button: {
+      margin: theme.spacing(1),
+    },
+  }));
+
 // Keep WebRTC goodies in global scope
 let pc = null
 let makingOffer = false
@@ -15,6 +27,9 @@ let writeRoom = null
 let readRoom = null
 
 const Chat = (props) => {
+    // Styling - Material US 
+    const classes = useStyles();
+
     // context stores the db connection
     const context = useContext(Context)
     // refs for various HTML elements
@@ -60,7 +75,7 @@ const Chat = (props) => {
                 let speechText = event.results[0][0].transcript.toLowerCase()
                 setSpeechText(speechText)
                 let speechObj = { sender: context.name, text: speechText }
-                if (channel) {
+                if (channel && channel.readyState == 'open') {
                     channel.send(JSON.stringify(speechObj))
                 }
                 setChatLogState([...chatLogState, speechObj])
@@ -68,6 +83,16 @@ const Chat = (props) => {
             }
         }
     }, [context.webkitSpeech, chatLogState]) // TODO debug why listening on setChatLogState doesn't work
+
+    useEffect(() => {
+        if (translationButtonRef) {
+            if(context.speechConfig && context.audioConfig) {
+                translationButtonRef.current.disabled = false
+            } else {
+                translationButtonRef.current.disabled = true
+            }
+        }
+    }, [translationButtonRef, context.speechConfig, context.audioConfig])
 
     // set up WebRTC peer connection with the necessary listeners
     const initializePeerConnection = () => {
@@ -288,7 +313,7 @@ const Chat = (props) => {
     const sendChatMessage = e => {
         e.preventDefault()
         let chatObj = { sender: context.name, text: chatText }
-        if (channel) {
+        if (channel && channel.readyState == 'open') {
             channel.send(JSON.stringify(chatObj))
         }
         setChatLogState([...chatLogState, chatObj])
@@ -335,7 +360,7 @@ const Chat = (props) => {
         let translationText = result.translations.get(translatedLangRef.current.value)
         setTranslatedText(translationText)
         let translationObj = { sender: context.name, text: translationText }
-        if (channel) {
+        if (channel && channel.readyState == 'open') {
             channel.send(JSON.stringify(translationObj))
         }
         setChatLogState([...chatLogState, translationObj])
@@ -375,7 +400,7 @@ const Chat = (props) => {
             </div>
             <form onSubmit={sendChatMessage}>
                 <input type="text" onChange={e => setChatText(e.target.value)} value={chatText} />
-                <button type="submit">Send</button>
+                <Button type="submit" variant="contained" color="primary" className={classes.button} endIcon={<Icon>send</Icon>}>   Send</Button>
             </form>
 
 
@@ -403,13 +428,15 @@ const Chat = (props) => {
                     <option value="ru">русский</option>
                 </select>
             </div>
+            
             <form onSubmit={e => {
                 e.preventDefault()
                 speechButtonRef.current.disabled = true
                 context.webkitSpeech.lang = spokenLangRef.current.value
                 context.webkitSpeech.start()
             }}>
-                <button ref={speechButtonRef} type="submit">Speak & Send</button>
+            
+                <Button ref={speechButtonRef} type="submit" variant="contained" color="secondary" className={classes.button} startIcon={<KeyboardVoiceIcon />} endIcon={<Icon>send</Icon>}>Speak & Send</Button>
                 <div style={{ border: "1px solid black", width: '50%', margin: "auto", minHeight: "20vh" }}>
                     <h2>{speechText}</h2>
                 </div>

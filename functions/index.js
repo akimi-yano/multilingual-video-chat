@@ -5,21 +5,32 @@ const cors = require('cors')({
 })
 const speechConfig = require("./config/speechConfig.js")
 
+const CACHE_TIMEOUT = 1000 * 60 * 5
+
+let cachedToken
+let cachedTime
+
 let tokenFn = (req, res) => {
     let customHeaders = {}
     customHeaders[speechConfig.headerKey] = speechConfig.headerValue
-    fetch(speechConfig.endpoint, {
-        method: 'POST',
-        headers: customHeaders
-    })
-    .then(fetchRes => fetchRes.text())
-    .then(token => {
-        res.json({
-            region: speechConfig.region,
-            token: token
+
+    // use cached result if possible
+    if (cachedToken && cachedTime && new Date() - cachedTime < CACHE_TIMEOUT) {
+        res.json({region: speechConfig.region, token: cachedToken})
+    } else {
+        fetch(speechConfig.endpoint, {
+            method: 'POST',
+            headers: customHeaders
         })
-    })
-    .catch(error => console.log(error))
+        .then(fetchRes => fetchRes.text())
+        .then(token => {
+            res.json({region: speechConfig.region, token: token})
+            // cache the results
+            cachedToken = token
+            cachedTime = new Date()
+        })
+        .catch(error => console.log(error))
+    }
 }
 
 // need to wrap with cors - https://mhaligowski.github.io/blog/2017/03/10/cors-in-cloud-functions.html
