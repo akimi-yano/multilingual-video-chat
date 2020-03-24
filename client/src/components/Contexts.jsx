@@ -3,11 +3,13 @@ import Context from "../context/Context"
 import * as firebase from 'firebase'
 import * as SpeechSDK from "microsoft-cognitiveservices-speech-sdk"
 import firebaseConfig from "../config/firebaseConfig.js"
+import tokenUrl from "../config/tokenUrl.js"
 
-// dev
-const tokenUrl = `http://localhost:5001/${firebaseConfig.projectId}/us-central1/token`
-// deployed
-// const tokenUrl = `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net/token`
+// dev - make sure to add bypass in server/local.settings.json:
+// https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local?tabs=macos%2Ccsharp%2Cbash#local-settings-file
+// const tokenUrl = 'http://localhost:7071/api/token'
+// deployed - make sure cors is configured on Azure portal via Function Apps -> Platform Features
+// const tokenUrl = 'in/firebaseConfig.js'
 
 const Contexts = (props) => {
     // user name

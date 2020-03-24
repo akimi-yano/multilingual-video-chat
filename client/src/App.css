@@ -38,16 +38,30 @@
 }
 
 #chatRoom{
+  border-radius: 5px;
   z-index:100000;
   position: absolute;
   width:90%;
-  height: 75vh;
+  height: 1000px;
   text-align: center; 
   background-color: white;
-  margin: 15vh 5%;
+  margin: 10vh 5%;
   vertical-align: middle;
-  
+  box-shadow: 0px 3px 3px -2px rgba(0,0,0,0.2), 0px 3px 4px 0px rgba(0,0,0,0.14), 0px 1px 8px 0px rgba(0,0,0,0.12);
 }
+#videos{
+  display: inline-block;
+  width:40vw;
+}
+#localVideo{
+  display: inline-block;
+  width:30vw;
+}
+#remoteVideo{
+  display: inline-block;
+  width:20vw;
+}
+
 #nameForm{
   z-index:100000;
   position: absolute;
@@ -57,6 +71,7 @@
   background-color: white;
   /* margin: 15vh 5%; */
   vertical-align: middle;
+  background-color: palevioletred;
 }
 #map {
   position: absolute;
@@ -69,12 +84,52 @@
   z-index: 1; 
 }
 
+.scrollBar{
+    background-color: lightskyblue;
+    border-radius: 5px;
+    /* box-shadow: 0px 3px 3px -2px rgba(0,0,0,0.2), 0px 3px 4px 0px rgba(0,0,0,0.14), 0px 1px 8px 0px rgba(0,0,0,0.12); */
+    width: 350px;
+    height: 350px;
+    overflow-y:scroll;
+    margin:
+    /* margin: 0 5%; */
+}
+.chatSet{
+  margin: 0 5%;
+  background-color: lightskyblue;
+  border-radius: 5px;
+  box-shadow: 0px 3px 3px -2px rgba(0,0,0,0.2), 0px 3px 4px 0px rgba(0,0,0,0.14), 0px 1px 8px 0px rgba(0,0,0,0.12);
+  width: 350px;
+  height: 420px;
+  display: inline-block;
+}
+.messageForm{
+  display: block;
+  width:350px;
+  height:70px;
+  background-color: darkblue;
+  border-radius: 5px;
+}
+.messageOnSubmit{
+  display: inline-block;
+}
+
 .countryName {
   z-index: 100;
   position: absolute;
   font-size: 50px;
   width: 98%;
   text-align: right;
+  font-weight: bold;
+  color: #fff;
+  -webkit-text-stroke: 1.5px #000;
+}
+.namePage{
+  color:white;
+  font-size: 40px;
+  -webkit-text-stroke: 1px #000;
+  display: inline-block;
+  margin-left: 20%;
 }
 
 /*Transitions*/

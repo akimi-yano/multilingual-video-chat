@@ -9,12 +9,22 @@ import Button from '@material-ui/core/Button';
 import Icon from '@material-ui/core/Icon';
 import KeyboardVoiceIcon from '@material-ui/icons/KeyboardVoice';
 import { makeStyles } from '@material-ui/core/styles';
+import HomeIcon from '@material-ui/icons/Home';
+import VideocamOffIcon from '@material-ui/icons/VideocamOff';
+import VideocamIcon from '@material-ui/icons/Videocam';
+import MicOffIcon from '@material-ui/icons/MicOff';
+import MicIcon from '@material-ui/icons/Mic';
+import TranslateIcon from '@material-ui/icons/Translate';
+import LanguageIcon from '@material-ui/icons/Language';
+import PhoneDisabledIcon from '@material-ui/icons/PhoneDisabled';
+import PhoneEnabledIcon from '@material-ui/icons/PhoneEnabled';
+import SendIcon from '@material-ui/icons/Send';
 
 const useStyles = makeStyles(theme => ({
     button: {
-      margin: theme.spacing(1),
+        margin: theme.spacing(1),
     },
-  }));
+}));
 
 // Keep WebRTC goodies in global scope
 let pc = null
@@ -39,6 +49,10 @@ const Chat = (props) => {
     const translationButtonRef = useRef(null)
     const spokenLangRef = useRef(null)
     const translatedLangRef = useRef(null)
+
+    // ref to keep the chat scroll bar scrolled down
+    const messagesEndRef = useRef(null)
+
     // standard React states
     const [audioState, setAudioState] = useState(false)
     const [videoState, setVideoState] = useState(false)
@@ -48,6 +62,8 @@ const Chat = (props) => {
     const [translatedText, setTranslatedText] = useState("")
     // state to toggle UI buttons/views
     const [pcState, setPcState] = useState(null)
+
+
 
     useEffect(() => {
         // When entering a Chat, either create a new room or join one
@@ -86,13 +102,26 @@ const Chat = (props) => {
 
     useEffect(() => {
         if (translationButtonRef) {
-            if(context.speechConfig && context.audioConfig) {
+            if (context.speechConfig && context.audioConfig) {
                 translationButtonRef.current.disabled = false
             } else {
                 translationButtonRef.current.disabled = true
             }
         }
     }, [translationButtonRef, context.speechConfig, context.audioConfig])
+
+    useEffect(() => {
+        if (chatLogState && messagesEndRef) {
+        scrollToBottom()
+        }
+    }, [chatLogState, messagesEndRef])
+
+    // to keep the scroll bar for the chat message to be scrolled down
+    const scrollToBottom = () => {
+        messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
+    }
+
+
 
     // set up WebRTC peer connection with the necessary listeners
     const initializePeerConnection = () => {
@@ -262,19 +291,19 @@ const Chat = (props) => {
         }
         if (writeRoom) {
             context.db.collection('countries').doc(props.country).collection('rooms').get()
-            .then((countryRooms) => {
-                countryRooms.forEach(countryRoom => {
-                    if (countryRoom.data().room == writeRoom) {
-                        context.db.collection('countries').doc(props.country).collection('rooms').doc(countryRoom.id).delete()
-                    }
+                .then((countryRooms) => {
+                    countryRooms.forEach(countryRoom => {
+                        if (countryRoom.data().room == writeRoom) {
+                            context.db.collection('countries').doc(props.country).collection('rooms').doc(countryRoom.id).delete()
+                        }
+                    })
                 })
-            })
             context.db.collection('rooms').doc(writeRoom).collection('candidates').get()
-            .then(candidates => {
-                candidates.forEach(candidate => {
-                    context.db.collection('rooms').doc(writeRoom).collection('candidates').doc(candidate.id).delete()
+                .then(candidates => {
+                    candidates.forEach(candidate => {
+                        context.db.collection('rooms').doc(writeRoom).collection('candidates').doc(candidate.id).delete()
+                    })
                 })
-            })
             context.db.collection('rooms').doc(writeRoom).delete()
         }
         navigate(`/leave/${props.country}`)
@@ -311,13 +340,19 @@ const Chat = (props) => {
 
     // event handler for chat sending
     const sendChatMessage = e => {
-        e.preventDefault()
+        e.preventDefault();
         let chatObj = { sender: context.name, text: chatText }
         if (channel && channel.readyState == 'open') {
             channel.send(JSON.stringify(chatObj))
         }
         setChatLogState([...chatLogState, chatObj])
         setChatText("")
+    }
+
+    const startWebkitSpeech = e => {
+        speechButtonRef.current.disabled = true
+        context.webkitSpeech.lang = spokenLangRef.current.value
+        context.webkitSpeech.start()
     }
 
     // prompt user for camera and video permissions
@@ -369,43 +404,50 @@ const Chat = (props) => {
 
     return (
         <div id="chatRoom">
-            <h1>♥ Welcome to {props.country} Chat Room, {context.name}! ♥</h1>
+            <h1>{props.country} Chat Room {context.name}</h1>
             <div id="buttons">
-                <button onClick={e => toggleTrack('audio') } id="toggleAudio" disabled={!pcState}>Turn {audioState ? "Off" : "On"} Audio</button>
-                <button onClick={e => toggleTrack('video')} id="toggleVideo" disabled={!pcState}>Turn {videoState ? "Off" : "On"} Video</button>
-                <button onClick={createRoom} id="createBtn">Create Room</button>
-                <button onClick={hangUp} id="hangupBtn">End Chat</button>
+                <Button style={{height: "45px"}} onClick={e => toggleTrack('audio')} id="toggleAudio" disabled={!pcState} variant="contained" color="primary" className={classes.button} endIcon={audioState? <PhoneDisabledIcon/> :<PhoneEnabledIcon/>}>Turn {audioState ? "Off" : "On"} Audio</Button>
+                <Button style={{height: "45px"}} onClick={e => toggleTrack('video')} id="toggleVideo" disabled={!pcState} variant="contained" color="primary" className={classes.button} endIcon={videoState? <VideocamOffIcon/> :<VideocamIcon/>}>Turn {videoState ? "Off" : "On"} Video</Button>
+                <Button style={{height: "45px"}} onClick={hangUp} id="hangupBtn" variant="contained" color="secondary" className={classes.button} endIcon={<HomeIcon/>} >Leave</Button>
+            </div>
+            <div className="chatSet">
+                <div className="scrollBar" ref={messagesEndRef}>
+                    {chatLogState.map((item, index) => (
+
+                        <div key={index}>
+                            {item.sender === context.name ?
+                                <div>
+                                    <p style={{ color: 'red', textAlign: "right", marginRight:"3vw"}}>{item.sender} (You) says:</p>
+                                    <p style={{ color: 'red', textAlign: "right", marginRight:"3vw"}}>{item.text}</p>
+                                </div>
+                                :
+                                <div>
+                                    <p style={{textAlign:"left", marginLeft:"3vw"}}>{item.sender} says:</p>
+                                    <p style={{textAlign:"left", marginLeft:"3vw"}}>{item.text}</p>
+                                </div>
+                            }
+                        </div>
+                    ))
+                    }
+                </div>
+                <div className="messageForm">
+
+                <form className="messageOnSubmit" onSubmit={sendChatMessage}> 
+                    <input style={{ height: "40px", width: "150px", fontSize: "20px", marginTop: '12px', marginLeft: '10px' }} type="text" onChange={e => setChatText(e.target.value)} value={chatText} />
+                    <Button style={{ width: '9px', height: "45px", marginTop: '3px', marginLeft: '15px'  }} type="submit" variant="contained" color="primary" className={classes.button}><SendIcon/></Button>
+                </form> 
+                    <Button style={{display: "inline-block"}} onClick={startWebkitSpeech} ref={speechButtonRef} style={{ width: '9px', height: "45px", marginTop: '3px'}} type="submit" variant="contained" color="primary" className={classes.button}><MicIcon/></Button>
+                </div>
+            </div>
+                
+        
+            <div id="videos">
+                <video id="localVideo" muted autoPlay playsInline ref={localVideoRef}></video>
+                <video id="remoteVideo" autoPlay playsInline ref={remoteVideoRef}></video>
             </div>
 
             <div>
-                {chatLogState.map((item, index) => (
-
-
-                    <div key={index}>
-                        {item.sender === context.name ?
-                            <div>
-                                <p style={{ color: 'red' }}>{item.sender} (You) says:</p>
-                                <p style={{ color: 'red' }}>{item.text}</p>
-                            </div>
-                            :
-                            <div>
-                                <p>{item.sender} says:</p>
-                                <p>{item.text}</p>
-                            </div>
-                        }
-                    </div>
-                ))
-
-                }
-            </div>
-            <form onSubmit={sendChatMessage}>
-                <input type="text" onChange={e => setChatText(e.target.value)} value={chatText} />
-                <Button type="submit" variant="contained" color="primary" className={classes.button} endIcon={<Icon>send</Icon>}>   Send</Button>
-            </form>
-
-
-            <div>
-                <label>Spoken Language</label>
+                <label><LanguageIcon/> Spoken Language</label>
                 <select ref={spokenLangRef}>
                     <option value="en-US">English</option>
                     <option value="zh-CN">中文</option>
@@ -417,7 +459,7 @@ const Chat = (props) => {
                 </select>
             </div>
             <div>
-                <label>Translated Language</label>
+                <label><LanguageIcon/> Translated Language</label>
                 <select ref={translatedLangRef}>
                     <option value="en">English</option>
                     <option value="zh-Hant">中文</option>
@@ -428,19 +470,7 @@ const Chat = (props) => {
                     <option value="ru">русский</option>
                 </select>
             </div>
-            
-            <form onSubmit={e => {
-                e.preventDefault()
-                speechButtonRef.current.disabled = true
-                context.webkitSpeech.lang = spokenLangRef.current.value
-                context.webkitSpeech.start()
-            }}>
-            
-                <Button ref={speechButtonRef} type="submit" variant="contained" color="secondary" className={classes.button} startIcon={<KeyboardVoiceIcon />} endIcon={<Icon>send</Icon>}>Speak & Send</Button>
-                <div style={{ border: "1px solid black", width: '50%', margin: "auto", minHeight: "20vh" }}>
-                    <h2>{speechText}</h2>
-                </div>
-            </form>
+            <div className="translationSet">
             <form onSubmit={e => {
                 e.preventDefault()
                 translationButtonRef.current.disabled = true
@@ -449,17 +479,17 @@ const Chat = (props) => {
                 let recognizer = new SpeechSDK.TranslationRecognizer(context.speechConfig, context.audioConfig)
                 recognizer.recognizeOnceAsync(onTranslationDone)
             }}>
-                <button ref={translationButtonRef} type="submit">Translate & Send</button>
+                <Button style={{height: "45px"}} ref={translationButtonRef} type="submit" variant="contained" color="secondary" className={classes.button} startIcon={<TranslateIcon/>} endIcon={<Icon>send</Icon>}>Translate & Send</Button>
                 <div style={{ border: "1px solid black", width: '50%', margin: "auto", minHeight: "20vh" }}>
                     <h2>{translatedText}</h2>
                 </div>
             </form>
-
-            <div id="videos">
-                <video id="localVideo" muted autoPlay playsInline ref={localVideoRef}></video>
-                <video id="remoteVideo" autoPlay playsInline ref={remoteVideoRef}></video>
             </div>
-        </div>
+     
+
+            
+        </div >
+
     );
 }
 
