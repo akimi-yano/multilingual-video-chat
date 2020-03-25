@@ -27,17 +27,33 @@ const useStyles = makeStyles(theme => ({
 }));
 
 // Keep WebRTC goodies in global scope
-let pc = null
-let makingOffer = false
-let polite = false
-let ignoreOffer = false
-let hangingUp = false
-let channel = null
-let writeRoom = null
-let readRoom = null
+console.log('initiating pc')
+let pc
+let makingOffer
+let polite
+let ignoreOffer
+let hangingUp
+let channel
+let writeRoom
+let readRoom
+const initRTC = () => {
+    pc = null
+    makingOffer = false
+    polite = false
+    ignoreOffer = false
+    hangingUp = false
+    channel = null
+    writeRoom = null
+    readRoom = null
+}
+initRTC()
 
 // TODO investigate why this is needed
-let chatLog = []
+let chatLog
+const initChatLog = () => {
+    chatLog = []
+}
+initChatLog()
 
 const Chat = (props) => {
     // Styling - Material US 
@@ -293,37 +309,48 @@ const Chat = (props) => {
 
     const hangUp = () => {
         hangingUp = true
-        if (localVideoRef.current.srcObject) {
+        if (localVideoRef.current && localVideoRef.current.srcObject) {
             localVideoRef.current.srcObject.getTracks().forEach(track => track.stop())
         }
-        if (remoteVideoRef.current.srcObject) {
+        if (remoteVideoRef.current && remoteVideoRef.current.srcObject) {
             remoteVideoRef.current.srcObject.getTracks().forEach(track => track.stop())
         }
         if (pc) {
             pc.close()
         }
+
+        // keep track of async deletions so we can re-init webrtc globals after they are completed
+        let promises = []
+        let p
         if (writeRoom) {
             // delete country data
-            context.db.collection('countries').doc(props.country).delete()
+            p = context.db.collection('countries').doc(props.country).delete()
+            promises.push(p)
             // delete writeRoom data
-            context.db.collection('rooms').doc(writeRoom).collection('candidates').get()
+            p = context.db.collection('rooms').doc(writeRoom).collection('candidates').get()
             .then(candidates => {
                 candidates.forEach(candidate => {
                     context.db.collection('rooms').doc(writeRoom).collection('candidates').doc(candidate.id).delete()
                 })
             })
-            context.db.collection('rooms').doc(writeRoom).delete()
+            promises.push(p)
+            p = context.db.collection('rooms').doc(writeRoom).delete()
+            promises.push(p)
         }
         if (readRoom) {
             // delete readRoom data (better chance of full cleanup)
-            context.db.collection('rooms').doc(readRoom).collection('candidates').get()
+            p = context.db.collection('rooms').doc(readRoom).collection('candidates').get()
             .then(candidates => {
                 candidates.forEach(candidate => {
                     context.db.collection('rooms').doc(writeRoom).collection('candidates').doc(candidate.id).delete()
                 })
             })
-            context.db.collection('rooms').doc(readRoom).delete()
+            promises.push(p)
+            p = context.db.collection('rooms').doc(readRoom).delete()
+            promises.push(p)
         }
+        // init webRTC global vars once cleanup is complete
+        Promise.all(promises).then(() => {initRTC(); initChatLog()})
         navigate(`/leave/${props.country}`)
     }
 
