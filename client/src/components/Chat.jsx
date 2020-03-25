@@ -66,22 +66,19 @@ const Chat = (props) => {
     // state to toggle UI buttons/views
     const [pcState, setPcState] = useState(null)
 
-
-
     useEffect(() => {
         // When entering a Chat, either create a new room or join one
         if (context.db) {
-            context.db.collection('countries').doc(props.country).collection('rooms').get()
-                .then(countryRoomsSnapshot => {
-                    if (countryRoomsSnapshot.docs.length < 1) {
+            context.db.collection('countries').doc(props.country).get()
+                .then(countrySnapshot => {
+                    if (!countrySnapshot.exists) {
                         createRoom()
-                    } else if (countryRoomsSnapshot.docs.length == 1) {
-                        readRoom = countryRoomsSnapshot.docs[0].data().room
+                    } else if (countrySnapshot.data().rooms.length == 1) {
+                        readRoom = countrySnapshot.data().rooms[0]
                         joinRoom()
                     } else {
-                        console.log('country is full: ', countryRoomsSnapshot.docs)
-                        // TODO uncomment
-                        // navigate(`/leave/${props.country}`)
+                        console.log('country is full: ', countrySnapshot.data().rooms)
+                        navigate(`/leave/${props.country}`)
                     }
                 })
         }
@@ -179,7 +176,6 @@ const Chat = (props) => {
             }
             // if room no longer exists, it's time to leave
             if (!snapshot.exists) {
-                console.log("hanging up in writeRoom: ", snapshot)
                 hangUp()
                 return
             }
@@ -207,7 +203,6 @@ const Chat = (props) => {
             }
             // if room no longer exists, it's time to leave
             if (!snapshot.exists) {
-                console.log("hanging up in readRoom: ", snapshot)
                 hangUp()
                 return
             }
@@ -261,7 +256,7 @@ const Chat = (props) => {
             .then(roomSnapshot => {
                 let room = roomSnapshot.id
                 writeRoom = room
-                context.db.collection('countries').doc(props.country).collection('rooms').add({ room })
+                context.db.collection('countries').doc(props.country).set({ rooms: [writeRoom] })
                 initializePeerConnection()
                 channel = pc.createDataChannel("sendChannel")
                 channel.onmessage = onChannelMessage
@@ -277,8 +272,7 @@ const Chat = (props) => {
                 offerSnapshot = snapshot
                 return context.db.collection('rooms').add({})
             }).then(snapshot => {
-                let room = snapshot.id
-                context.db.collection('countries').doc(props.country).collection('rooms').add({ room })
+                context.db.collection('countries').doc(props.country).set({ rooms: [readRoom, snapshot.id]})
                 writeRoom = snapshot.id
             }).then(() => {
                 initializePeerConnection()
@@ -310,12 +304,7 @@ const Chat = (props) => {
         }
         if (writeRoom) {
             // delete country data
-            context.db.collection('countries').doc(props.country).collection('rooms').get()
-            .then((countryRooms) => {
-                countryRooms.forEach(countryRoom => {
-                    context.db.collection('countries').doc(props.country).collection('rooms').doc(countryRoom.id).delete()
-                })
-            })
+            context.db.collection('countries').doc(props.country).delete()
             // delete writeRoom data
             context.db.collection('rooms').doc(writeRoom).collection('candidates').get()
             .then(candidates => {
@@ -324,7 +313,8 @@ const Chat = (props) => {
                 })
             })
             context.db.collection('rooms').doc(writeRoom).delete()
-
+        }
+        if (readRoom) {
             // delete readRoom data (better chance of full cleanup)
             context.db.collection('rooms').doc(readRoom).collection('candidates').get()
             .then(candidates => {

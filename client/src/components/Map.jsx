@@ -1,22 +1,16 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Context from '../context/Context'
-// let L = require('mapbox');
 import L from 'mapbox.js'
-// import * as react-dom from 'react-dom'
 import countriesLayer from '../data/world'
-// import { Link } from 'react-router';
-// import repositionMap from './utilities.jsx';
-// import {browserHistory} from 'react-router'
 import mapboxConfig from '../config/mapboxConfig.js'
+import { navigate } from "@reach/router"
 
-import {navigate} from "@reach/router"
+let map
+let geojson
 
 const Map = (props) => {
     const context = useContext(Context)
-    let map
-
     const [highlightedCountry, setHighlightedCountry] = useState("")
-    let geojson;
 
     useEffect(() => {
         map = L.map('map').setView([51.505, -50.50], 3);
@@ -29,57 +23,41 @@ const Map = (props) => {
             user_name: mapboxConfig.userName,
             mapboxAccessToken: mapboxConfig.accessToken,
         }).addTo(map);
-
-    geojson = L.geoJSON(countriesLayer, {
-        onEachFeature: countriesOnEachFeature
-    }).addTo(map);
-
-    geojson.setStyle({ opacity: 0, fillOpacity: 0 })
     }, [])
 
-    const resetHighlight = (e) => {
-        geojson.setStyle({ fillOpacity: 0 })
-    }
+    useEffect(() => {
+        if (context.db) {
+            // get countries data to get room count
+            context.db.collection('countries').onSnapshot(countriesSnapshot => {
+                let rooms = {}
+                countriesSnapshot.forEach(country =>
+                    rooms[country.id] = country.data().rooms.length
+                )
 
-    const zoomToFeature = (clickEvent) => {
-        let countryObject = clickEvent.target
-        let countryName = countryObject.feature.properties.name
-        let countryBounds = (countryObject.getBounds())
-
-        map.fitBounds(countryBounds)
-        if (countryName==="United States"){
-            map.setView([38.68551, -99.49219], 5)
-        } else if (countryName==="China"){
-            map.setView([37.23033, 105.77637], 3)
+                let countriesOnEachFeature = (feature, layer) => {
+                    let country = feature.properties.name
+                    let color = rooms[country] ? (rooms[country] == 1 ? 'pink' : 'black') : ''
+                    layer.on(
+                        {
+                            mouseover: highlightFeature,
+                            mouseout: e => e.target.setStyle({ fillColor: color, opacity: 0.5, fillOpacity: 0.5 }),
+                            click: zoomToFeature
+                        }
+                    )
+                    layer.setStyle({ fillColor: color, opacity: 0.5, fillOpacity: 0.5 })
+                }
+                if (geojson) {
+                    geojson.remove()
+                }
+                geojson = L.geoJSON(countriesLayer, {
+                    onEachFeature: countriesOnEachFeature
+                }).addTo(map);
+            })
         }
-        else if (countryName==="Spain"){
-            map.setView([40.66397, -3.40576], 6)
-        }
-        else if (countryName==="France"){
-            map.setView([46.83013, 2.59277], 6)
-        }
-        else if (countryName==="Republic of Korea"){
-            map.setView([35.88015, 127.97974], 7)
-        }
-        else{
-            map.setView([16.541430, 7.558594], 2)
-        }
-
-        navigate(`/enter/${clickEvent.target.feature.properties.name}`)
-    }
-
-    const countriesOnEachFeature = (feature, layer) => {
-        layer.on(
-            {
-                mouseover: highlightFeature,
-                mouseout: resetHighlight,
-                click: zoomToFeature
-            }
-        )
-    }
+    }, [context.db])
 
     const highlightFeature = (e) => {
-        var layer = e.target;
+        let layer = e.target;
         let country = layer.feature.properties.name
 
         setHighlightedCountry(country)
@@ -96,6 +74,34 @@ const Map = (props) => {
             layer.bringToFront();
         }
     }
+
+    const zoomToFeature = (clickEvent) => {
+        let countryObject = clickEvent.target
+        let countryName = countryObject.feature.properties.name
+        let countryBounds = (countryObject.getBounds())
+
+        map.fitBounds(countryBounds)
+        if (countryName === "United States") {
+            map.setView([38.68551, -99.49219], 5)
+        } else if (countryName === "China") {
+            map.setView([37.23033, 105.77637], 3)
+        }
+        else if (countryName === "Spain") {
+            map.setView([40.66397, -3.40576], 6)
+        }
+        else if (countryName === "France") {
+            map.setView([46.83013, 2.59277], 6)
+        }
+        else if (countryName === "Republic of Korea") {
+            map.setView([35.88015, 127.97974], 7)
+        }
+        else {
+            map.setView([16.541430, 7.558594], 2)
+        }
+
+        navigate(`/enter/${clickEvent.target.feature.properties.name}`)
+    }
+
 
     return (
         <div>
