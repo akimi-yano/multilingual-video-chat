@@ -36,6 +36,9 @@ let channel = null
 let writeRoom = null
 let readRoom = null
 
+// TODO investigate why this is needed
+let chatLog = []
+
 const Chat = (props) => {
     // Styling - Material US 
     const classes = useStyles();
@@ -94,7 +97,8 @@ const Chat = (props) => {
                 if (channel && channel.readyState == 'open') {
                     channel.send(JSON.stringify(speechObj))
                 }
-                setChatLogState([...chatLogState, speechObj])
+                chatLog = [...chatLog, speechObj]
+                setChatLogState(chatLog)
                 speechButtonRef.current.disabled = false
             }
         }
@@ -169,8 +173,14 @@ const Chat = (props) => {
             if (myWrite) {
                 return
             }
-            // if hanging up
+            // during hangup, ignore any snapshot updates
             if (hangingUp) {
+                return
+            }
+            // if room no longer exists, it's time to leave
+            if (!snapshot.exists) {
+                console.log("hanging up in writeRoom: ", snapshot)
+                hangUp()
                 return
             }
 
@@ -186,14 +196,19 @@ const Chat = (props) => {
     const initializeReadRoomOnSnapshots = () => {
         // listen for new offers/answers
         context.db.collection('rooms').doc(readRoom).onSnapshot(snapshot => {
-            // ignore your own writes
+            // ignore your own writes (for joinRoom() when providing your writeRoom)
             let myWrite = snapshot.metadata.hasPendingWrites ? true : false;
             if (myWrite) {
                 return
             }
-
-            // if hanging up, there may be writes on the other end to delete
-            if (hangingUp || !snapshot.exists) {
+            // during hangup, ignore any snapshot updates
+            if (hangingUp) {
+                return
+            }
+            // if room no longer exists, it's time to leave
+            if (!snapshot.exists) {
+                console.log("hanging up in readRoom: ", snapshot)
+                hangUp()
                 return
             }
 
@@ -220,8 +235,8 @@ const Chat = (props) => {
 
         // listen for new ice candidates
         context.db.collection('rooms').doc(readRoom).collection('candidates').onSnapshot(snapshot => {
-            // if hanging up, there may be writes on the other end to delete
-            if (hangingUp || !snapshot.exists) {
+            // during hangup, ignore any snapshot updates
+            if (hangingUp) {
                 return
             }
 
@@ -229,6 +244,10 @@ const Chat = (props) => {
                 if (change.type === "added") {
                     let candidate = change.doc.data()
                     pc.addIceCandidate(candidate);
+                // if candidates are being removed, it's time to leave
+                } else if (change.type === "removed") {
+                    hangUp()
+                    return
                 }
             })
         })
@@ -290,21 +309,30 @@ const Chat = (props) => {
             pc.close()
         }
         if (writeRoom) {
+            // delete country data
             context.db.collection('countries').doc(props.country).collection('rooms').get()
-                .then((countryRooms) => {
-                    countryRooms.forEach(countryRoom => {
-                        if (countryRoom.data().room == writeRoom) {
-                            context.db.collection('countries').doc(props.country).collection('rooms').doc(countryRoom.id).delete()
-                        }
-                    })
+            .then((countryRooms) => {
+                countryRooms.forEach(countryRoom => {
+                    context.db.collection('countries').doc(props.country).collection('rooms').doc(countryRoom.id).delete()
                 })
+            })
+            // delete writeRoom data
             context.db.collection('rooms').doc(writeRoom).collection('candidates').get()
-                .then(candidates => {
-                    candidates.forEach(candidate => {
-                        context.db.collection('rooms').doc(writeRoom).collection('candidates').doc(candidate.id).delete()
-                    })
+            .then(candidates => {
+                candidates.forEach(candidate => {
+                    context.db.collection('rooms').doc(writeRoom).collection('candidates').doc(candidate.id).delete()
                 })
+            })
             context.db.collection('rooms').doc(writeRoom).delete()
+
+            // delete readRoom data (better chance of full cleanup)
+            context.db.collection('rooms').doc(readRoom).collection('candidates').get()
+            .then(candidates => {
+                candidates.forEach(candidate => {
+                    context.db.collection('rooms').doc(writeRoom).collection('candidates').doc(candidate.id).delete()
+                })
+            })
+            context.db.collection('rooms').doc(readRoom).delete()
         }
         navigate(`/leave/${props.country}`)
     }
@@ -335,7 +363,8 @@ const Chat = (props) => {
     // event hiandler for channel received
     const onChannelMessage = event => {
         let chatObj = JSON.parse(event.data)
-        setChatLogState([...chatLogState, chatObj])
+        chatLog = [...chatLog, chatObj]
+        setChatLogState(chatLog)
     }
 
     // event handler for chat sending
@@ -345,7 +374,8 @@ const Chat = (props) => {
         if (channel && channel.readyState == 'open') {
             channel.send(JSON.stringify(chatObj))
         }
-        setChatLogState([...chatLogState, chatObj])
+        chatLog = [...chatLog, chatObj]
+        setChatLogState(chatLog)
         setChatText("")
     }
 
@@ -398,7 +428,8 @@ const Chat = (props) => {
         if (channel && channel.readyState == 'open') {
             channel.send(JSON.stringify(translationObj))
         }
-        setChatLogState([...chatLogState, translationObj])
+        chatLog = [...chatLog, translationObj]
+        setChatLogState(chatLog)
         translationButtonRef.current.disabled = false
     }
 
