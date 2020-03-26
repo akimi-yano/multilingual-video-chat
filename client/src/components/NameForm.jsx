@@ -7,7 +7,7 @@ import Context from '../context/Context'
 import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
-import { yellow } from '@material-ui/core/colors';
+// import { yellow } from '@material-ui/core/colors';
 import HelpIcon from '@material-ui/icons/Help';
 import CreateIcon from '@material-ui/icons/Create';
 import LocalAirportIcon from '@material-ui/icons/LocalAirport';
@@ -185,7 +185,7 @@ const NameForm = () => {
           <Button style={{height:'50px', margin:'0px 10px'}} variant="outlined" color="primary">About</Button>
           <Button style={{height:'50px', margin:'0px 10px'}} variant="outlined" color="primary">How to use</Button>
           <Button style={{height:'50px', margin:'0px 10px'}} variant="outlined" color="primary">Technologies</Button>
-          <div class="crop">
+          <div className="crop">
  
         <img src= {process.env.PUBLIC_URL + '/arrow.gif'}/>
     </div>

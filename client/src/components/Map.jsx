@@ -13,11 +13,6 @@ const Map = (props) => {
     const [highlightedCountry, setHighlightedCountry] = useState("")
 
     useEffect(() => {
-        if (context.name == 'anonymous') {
-            navigate('/')
-        }
-    })
-    useEffect(() => {
         map = L.map('map').setView([51.505, -50.50], 3);
         // let myMap = L.map("worldMap").setView([40, -74.50], 9);
         L.tileLayer('https://api.mapbox.com/styles/v1/{user_name}/{style_id}/tiles/256/{z}/{x}/{y}?access_token={mapboxAccessToken}', {
@@ -41,11 +36,14 @@ const Map = (props) => {
 
                 let countriesOnEachFeature = (feature, layer) => {
                     let country = feature.properties.name
-                    let color = rooms[country] ? (rooms[country] == 1 ? 'palevioletred;' : 'black') : ''
+                    let color = rooms[country] ? (rooms[country] === 1 ? 'palevioletred' : 'black') : ''
                     layer.on(
                         {
                             mouseover: highlightFeature,
-                            mouseout: e => e.target.setStyle({ fillColor: color, opacity: 0.2, fillOpacity: 0.2 }),
+                            mouseout: e => {
+                                setHighlightedCountry("")
+                                e.target.setStyle({ fillColor: color, opacity: 0.2, fillOpacity: 0.2 })
+                            },
                             click: zoomToFeature
                         }
                     )
@@ -113,6 +111,7 @@ const Map = (props) => {
             {/* {context.name?
             <div >Welcome {context.name}</div>:
             null} */}
+            <div className="userName">Hello, {context.name}</div>
             <div className="countryName">{highlightedCountry}</div>
             <div className="container" id="map"></div>
         </div>

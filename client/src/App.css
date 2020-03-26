@@ -888,6 +888,15 @@
 .messageOnSubmit{
   display: inline-block;
 }
+.userName {
+  z-index: 100;
+  position: absolute;
+  font-size: 50px;
+  margin-left: 50px;
+  font-weight: bold;
+  color: #fff;
+  -webkit-text-stroke: 1.5px #000;
+}
 
 .countryName {
   z-index: 100;

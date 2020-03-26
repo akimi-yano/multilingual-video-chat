@@ -7,12 +7,12 @@ import staticConfig from "../staticConfig.js"
 // Styling - Material US 
 import Button from '@material-ui/core/Button';
 import Icon from '@material-ui/core/Icon';
-import KeyboardVoiceIcon from '@material-ui/icons/KeyboardVoice';
+// import KeyboardVoiceIcon from '@material-ui/icons/KeyboardVoice';
 import { makeStyles } from '@material-ui/core/styles';
 import HomeIcon from '@material-ui/icons/Home';
 import VideocamOffIcon from '@material-ui/icons/VideocamOff';
 import VideocamIcon from '@material-ui/icons/Videocam';
-import MicOffIcon from '@material-ui/icons/MicOff';
+// import MicOffIcon from '@material-ui/icons/MicOff';
 import MicIcon from '@material-ui/icons/Mic';
 import TranslateIcon from '@material-ui/icons/Translate';
 import LanguageIcon from '@material-ui/icons/Language';
@@ -28,7 +28,6 @@ const useStyles = makeStyles(theme => ({
 }));
 
 // Keep WebRTC goodies in global scope
-console.log('initiating pc')
 let pc
 let makingOffer
 let polite

@@ -1,10 +1,10 @@
 import './App.css';
-import React,{createContext} from 'react'
+import React from 'react'
 import {Router} from '@reach/router'
 import NameForm from './components/NameForm'
 import Chat from './components/Chat'
-import Contexts from './components/Contexts';
-import Rooms from './components/Rooms';
+import Contexts from './context/Contexts';
+// import Rooms from './components/Rooms';
 import Map from './components/Map'
 import EnterChat from './components/EnterChat'
 import LeaveChat from './components/LeaveChat'
