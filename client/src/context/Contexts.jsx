@@ -15,9 +15,9 @@ import cookie from 'cookie'
 // const tokenUrl = 'in/firebaseConfig.js'
 
 // local dev
-const fbTokenUrl = `http://localhost:5001/${firebaseConfig.projectId}/us-central1/token?authId=`
+// const fbTokenUrl = `http://localhost:5001/${firebaseConfig.projectId}/us-central1/token?authId=`
 // deployed
-// const tokenUrl = `https://${firebaseConfig.projectId}.firebaseapp.com/api/token?authId=`
+const fbTokenUrl = `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net/token?authId=`
 
 const Contexts = (props) => {
     // user name
@@ -38,25 +38,39 @@ const Contexts = (props) => {
         setupDbAndRoom()
         setupWebkitSpeech()
         setupTranslator()
+        let cookieName = cookie.parse(document.cookie).name
+        setNameStateAndCookie(cookieName)
     },[])
 
     useEffect(() => {
         let cookies = cookie.parse(document.cookie)
         if (cookies.token) {
             firebase.auth().signInWithCustomToken(cookies.token)
-            .catch(function(error) {
+            .catch(function(e) {
                 console.log('auth failed, re-fetching token')
-                setupToken(name)
+                setupFbToken(name)
             })
         } else {
-            setupToken(name)
+            setupFbToken(name)
         }
+
+
     }, [name])
 
-    const setupToken = (authId) => {
+    const setupFbToken = (authId) => {
+        let token
         fetch(fbTokenUrl + authId)
         .then(resp => resp.json())
-        .then(body => firebase.auth().signInWithCustomToken(body.token).catch(error => console.log(error)))
+        .then(body => {
+            token = body.token
+            firebase.auth().signInWithCustomToken(token)
+        })
+        .then(() => {
+            document.cookie = `token=${token}`
+            // also set the name here
+            document.cookie = `name=${authId}`
+        })
+        .catch(e => console.log(e))
     }
 
     const setupDbAndRoom = () => {
@@ -104,9 +118,16 @@ const Contexts = (props) => {
         })
     }
 
+    const setNameStateAndCookie = (newName) => {
+        newName = newName ? newName : 'anonymous'
+        document.cookie = `name=${newName}`
+        setName(newName)
+        
+    }
+
     return (
         <div>
-            <Context.Provider value={{name, setName, db, room, webkitSpeech, speechConfig, audioConfig, avatar, setAvatar}}>
+            <Context.Provider value={{name, setNameStateAndCookie, db, room, webkitSpeech, speechConfig, audioConfig, avatar, setAvatar}}>
                 {props.children}
             </Context.Provider>
         </div>

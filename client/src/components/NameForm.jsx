@@ -36,7 +36,7 @@ const NameForm = () => {
     }
     const onSubmitHandler=e=>{
         e.preventDefault();
-        context.setName(formState)
+        context.setNameStateAndCookie(formState)
         context.setAvatar([numState, numEyeState, numMouthState])
         navigate('/chat')
     }

@@ -29,14 +29,14 @@ const Map = (props) => {
         if (context.db) {
             // get countries data to get room count
             context.db.collection('countries').onSnapshot(countriesSnapshot => {
-                let rooms = {}
+                let occupied = new Set()
                 countriesSnapshot.forEach(country =>
-                    rooms[country.id] = country.data().rooms.length
+                    country.exists ? (country.data().readRoom ? occupied.add(country.id) : null): null
                 )
 
                 let countriesOnEachFeature = (feature, layer) => {
                     let country = feature.properties.name
-                    let color = rooms[country] ? (rooms[country] === 1 ? 'palevioletred' : 'black') : ''
+                    let color = occupied.has(country) ? ('navy') : ''
                     layer.on(
                         {
                             mouseover: highlightFeature,
