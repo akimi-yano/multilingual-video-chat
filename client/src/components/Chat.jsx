@@ -20,6 +20,7 @@ import PhoneDisabledIcon from '@material-ui/icons/PhoneDisabled';
 import PhoneEnabledIcon from '@material-ui/icons/PhoneEnabled';
 import SendIcon from '@material-ui/icons/Send';
 
+
 const useStyles = makeStyles(theme => ({
     button: {
         margin: theme.spacing(1),
@@ -106,7 +107,7 @@ const Chat = (props) => {
             context.webkitSpeech.onresult = function (event) {
                 let speechText = event.results[0][0].transcript.toLowerCase()
                 setSpeechText(speechText)
-                let speechObj = { sender: context.name, text: speechText }
+                let speechObj = { sender: context.name, text: speechText, avatar: context.avatar }
                 if (channel && channel.readyState == 'open') {
                     channel.send(JSON.stringify(speechObj))
                 }
@@ -138,8 +139,14 @@ const Chat = (props) => {
         messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
     }
 
-
-
+    console.log(context.avatar)
+    console.log(context.avatar[0])
+    console.log(context.avatar[1])
+    console.log(context.avatar[2])
+    console.log(context.avatar[0].toString())
+    console.log('x'+ (context.avatar[0]).toString())
+    console.log(typeof 'x'+ (context.avatar[0]).toString())
+ 
     // set up WebRTC peer connection with the necessary listeners
     const initializePeerConnection = () => {
         pc = new RTCPeerConnection(staticConfig.rtcConfig)
@@ -387,7 +394,7 @@ const Chat = (props) => {
     // event handler for chat sending
     const sendChatMessage = e => {
         e.preventDefault();
-        let chatObj = { sender: context.name, text: chatText }
+        let chatObj = { sender: context.name, text: chatText, avatar: context.avatar }
         if (channel && channel.readyState == 'open') {
             channel.send(JSON.stringify(chatObj))
         }
@@ -441,7 +448,7 @@ const Chat = (props) => {
     const onTranslationDone = (result) => {
         let translationText = result.translations.get(translatedLangRef.current.value)
         setTranslatedText(translationText)
-        let translationObj = { sender: context.name, text: translationText }
+        let translationObj = { sender: context.name, text: translationText, avatar: context.avatar }
         if (channel && channel.readyState == 'open') {
             channel.send(JSON.stringify(translationObj))
         }
@@ -464,15 +471,34 @@ const Chat = (props) => {
 
                         <div key={index}>
                             {item.sender === context.name ?
-                                <div>
-                                    <p style={{ color: 'red', textAlign: "right", marginRight:"3vw"}}>{item.sender} (You) says:</p>
-                                    <p style={{ color: 'red', textAlign: "right", marginRight:"3vw"}}>{item.text}</p>
+
+                                <div className="balloon_r">
+                                    <div className="faceicon" style={{display: "block"}}>
+                                        <div style={{zoom: '130%'}} className={'x'+ (item.avatar[0]).toString()}>
+                                            <img  src={process.env.PUBLIC_URL + '/color_atlas.gif'} />
+                                        </div>
+                                        {/* <img style={{zoom: '120%'}} className={'x'+ (context.avatar[0]).toString()} src= {process.env.PUBLIC_URL + '/color_atlas.gif'}/>
+                                        <img style={{zoom: '120%'}} className={'y'+ (context.avatar[1]).toString()} src= {process.env.PUBLIC_URL + '/eyes_atlas.gif'}/>
+                                        <img style={{zoom: '120%'}} className={'z'+ (context.avatar[2]).toString()} src= {process.env.PUBLIC_URL + '/mouth_atlas.gif'}/>                    */}
+                                        <p style={{maxWidth:'70px', wordWrap: 'break-word', marginTop: "0px", fontSize:'12px', marginLeft:'-5px'}}>{item.sender} (me)</p>
+                                
+                                  </div>
+                                    <div className="says">
+                                        <p>{item.text}</p></div>
                                 </div>
+
                                 :
-                                <div>
-                                    <p style={{textAlign:"left", marginLeft:"3vw"}}>{item.sender} says:</p>
-                                    <p style={{textAlign:"left", marginLeft:"3vw"}}>{item.text}</p>
-                                </div>
+
+                                <div className="balloon_l">
+                                    <div className="faceicon" style={{display: "block", marginRight: '5px'}}>
+                                    <div style={{zoom: '130%'}} className={'x'+ (item.avatar[0]).toString()}>
+                                            <img  src={process.env.PUBLIC_URL + '/color_atlas.gif'} />
+                                        </div>
+                                        <p style={{maxWidth:'70px', wordWrap: 'break-word', marginTop: "0px", fontSize:'12px', marginLeft:'5px'}}>{item.sender}</p>
+                                        </div>
+                                        <div className="says"> 
+                                    <p>{item.text}</p></div>
+                                    </div>
                             }
                         </div>
                     ))

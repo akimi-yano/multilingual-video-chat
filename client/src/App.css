@@ -133,92 +133,241 @@
   z-index: 100;
   zoom: 1.8;
 }
-.x1{
-  position: absolute;
-  clip: rect(0px,48px,48px,0px);
-  margin-top: 25px; 
-  margin-left: -20px;
-  zoom: 1.8;
-}
-.x2{
-  position: absolute;
-  clip: rect(0px,96px,48px,49px);
-  margin:auto;
-  margin-top: 25px; 
-  margin-left: -68px; 
-  zoom: 1.8;
-}
-.x3{
-  position: absolute;
-  clip: rect(0px,144px,48px,97px);
-  margin-top: 25px; 
-  margin-left: -116px; 
-  zoom: 1.8;
-}
-.x4{
-  position: absolute;
-  clip: rect(0px,193px,48px,147px);
-  margin-top: 25px; 
-  margin-left: -164px; 
-  zoom: 1.8;
-}
-.x5{
-  position: absolute;
-  clip: rect(0px,240px,48px,194px);
-  margin-top: 25px; 
-  margin-left: -212px; 
-  zoom: 1.8;
-}
-.x6{
-  position: absolute;
-  clip: rect(0px,288px,48px,242px);
-  margin-top: 25px; 
-  margin-left: -260px; 
-  zoom: 1.8;
-}
-.x7{
-  position: absolute;
-  clip: rect(0px,337px,48px,291px);
-  margin-top: 25px; 
-  margin-left: -308px; 
-  zoom: 1.8;
-}
-.x8{
-  position: absolute;
-  clip: rect(0px,384px,48px,341px);
-  margin-top: 25px; 
-  margin-left: -356px; 
-  zoom: 1.8;
-}
-.x9{
-  position: absolute;
-  clip: rect(0px,433px,48px,389px);
-  margin-top: 25px; 
-  margin-left: -404px; 
-  zoom: 1.8;
-}
-.x10{
-  position: absolute;
-  clip: rect(0px,480px,48px,434px);
-  margin-top: 25px; 
-  margin-left: -452px; 
-  zoom: 1.8;
-}
-.x11{
-  position: absolute;
-  clip: rect(49px,48px,100px,0px);
-  margin-top: -23px;  
-  margin-left: -20px;
-  zoom: 1.8;
-  
+
+.crop {
+  width: 17px;
+  height: 17px;
+  overflow: hidden;
+  zoom: 150%;
+  position: relative;
 }
 
+.crop img {
+  width: 33px;
+  height: 33px;
+  margin: -17px 0 0 -9px;
+  position: absolute;
+}
+
+.x1{
+  position: relative;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.8;
+}
+.x1 img {
+  width: 480px;
+  height: 480px;
+  margin: 0.7px 0px 0px -1px;
+}
+.x2{
+  position: relative;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.8;
+}
+.x2 img{
+  width: 480px;
+  height: 480px;
+  margin: 0.7px 0px 0px -48.5px;
+}
+.x3{
+  position: relative;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.8;
+}
+.x3 img{
+  width: 480px;
+  height: 480px;
+  margin: 0.7px 0px 0px -96px;
+}
+.x4{
+  position: relative;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.8;
+}
+.x4 img{
+  width: 480px;
+  height: 480px;
+  margin:0px 0px 0px -145.5px;
+}
+.x5{
+  position: relative;
+  width: 46px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.8;
+}
+.x5 img{
+  width: 480px;
+  height: 480px;
+  margin: 0px 0px 0px -195.5px;
+}
+.x6{
+  position: relative;
+  width: 46px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.8;
+}
+.x6 img{
+  width: 480px;
+  height: 480px;
+  margin: 0.7px 0px 0px -241px;
+}
+.x7{
+  position: relative;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.8;
+}
+.x7 img{
+  width: 480px;
+  height: 480px;
+  margin: 0px 0px 0px -288.5px;
+}
+.x8{
+  position: relative;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.8;
+}
+.x8 img{
+  width: 480px;
+  height: 480px;
+  margin: 0.7px 0px 0px -337px;
+}
+.x9{
+  position: relative;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.8;
+}
+.x9 img{
+  width: 480px;
+  height: 480px;
+  margin: 0px 0px 0px -385px;
+}
+.x10{
+  position: relative;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.8;
+}
+.x10 img{
+  width: 480px;
+  height: 480px;
+  margin: 0.5px 0px 0px -434px;
+}
+.x11{
+  position: relative;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.8;
+  margin-top:3px;
+}
+.x11 img {
+  width: 480px;
+  height: 480px;
+  margin: -49.3px 0px 0px -1.3px;
+}
+.x12{
+  position: relative;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.8;
+  margin-top:3px;
+}
+.x12 img{
+  width: 480px;
+  height: 480px;
+  margin: -49.3px 0px 0px -49.15px;
+}
+.x13{
+  position: relative;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.8;
+  margin-top:2px;
+}
+.x13 img{
+  width: 480px;
+  height: 480px;
+  margin: -49.4px 0px 0px -95.9px;
+}
+.x14{
+  position: relative;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.8;
+  margin-top:3px;
+}
+.x14 img{
+  width: 480px;
+  height: 480px;
+  margin: -50.5px 0px 0px -145.5px;
+}
+.x15{
+  position: relative;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.8;
+  margin-top:2.9px;
+}
+.x15 img{
+  width: 480px;
+  height: 480px;
+  margin: -50.5px 0px 0px -196px;
+}
+.x16{
+  position: relative;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.8;
+  margin-top:2.9px;
+  margin-left: -2.65px;
+}
+.x16 img{
+  width: 480px;
+  height: 480px;
+  margin: -50.5px 0px 0px -241.5px;
+}
+.x17{
+  position: relative;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.8;
+  margin-top:2.8px;
+}
+.x17 img{
+  width: 480px;
+  height: 480px;
+  margin: -51px 0px 0px -289px;
+  
+}
 .y1{
   z-index: 99;
   position: absolute;
   clip: rect(0px,48px,48px,0px);
-  margin-top: 25px; 
-  margin-left: -20px;
+  margin-top: 10px; 
+  margin-left: -24.5px;
   zoom: 1.8;
 }
 .y2{
@@ -226,55 +375,55 @@
   position: absolute;
   clip: rect(0px,96px,48px,49px);
   margin:auto;
-  margin-top: 25px; 
-  margin-left: -68px; 
+  margin-top: 10px; 
+  margin-left: -72.5px; 
   zoom: 1.8;
 }
 .y3{
   z-index: 99;
   position: absolute;
   clip: rect(0px,144px,48px,97px);
-  margin-top: 25px; 
-  margin-left: -116px; 
+  margin-top: 10px; 
+  margin-left: -120px; 
   zoom: 1.8;
 }
 .y4{
   z-index: 99;
   position: absolute;
   clip: rect(0px,193px,48px,147px);
-  margin-top: 25px; 
-  margin-left: -164px; 
+  margin-top: 10px; 
+  margin-left: -168.5px; 
   zoom: 1.8;
 }
 .y5{
   z-index: 99;
   position: absolute;
   clip: rect(0px,240px,48px,194px);
-  margin-top: 25px; 
-  margin-left: -212px; 
+  margin-top: 10px; 
+  margin-left: -215.5px; 
   zoom: 1.8;
 }
 .y6{
   z-index: 99;
   position: absolute;
   clip: rect(0px,288px,48px,242px);
-  margin-top: 25px; 
-  margin-left: -260px; 
+  margin-top: 10px; 
+  margin-left: -264.5px; 
   zoom: 1.8;
 }
 .y7{
   z-index: 99;
   position: absolute;
   clip: rect(0px,337px,48px,291px);
-  margin-top: 25px; 
-  margin-left: -308px; 
+  margin-top: 10px; 
+  margin-left: -311.5px; 
   zoom: 1.8;
 }
 .y8{
   z-index: 99;
   position: absolute;
   clip: rect(0px,384px,48px,341px);
-  margin-top: 25px; 
+  margin-top: 10px; 
   margin-left: -356px; 
   zoom: 1.8;
 }
@@ -282,7 +431,7 @@
   z-index: 99;
   position: absolute;
   clip: rect(0px,433px,48px,389px);
-  margin-top: 25px; 
+  margin-top: 10px; 
   margin-left: -404px; 
   zoom: 1.8;
 }
@@ -290,7 +439,7 @@
   z-index: 99;
   position: absolute;
   clip: rect(0px,480px,48px,434px);
-  margin-top: 25px; 
+  margin-top: 10px; 
   margin-left: -452px; 
   zoom: 1.8;
 }
@@ -469,8 +618,8 @@
   z-index: 99;
   position: absolute;
   clip: rect(0px,48px,48px,0px);
-  margin-top: 25px; 
-  margin-left: -20px;
+  margin-top: 8px; 
+  margin-left: -24.5px;
   zoom: 1.8;
 }
 .z2{
@@ -663,6 +812,7 @@
 
 
 #chatRoom{
+  
   border-radius: 5px;
   z-index:100000;
   position: absolute;
@@ -716,9 +866,9 @@
     width: 350px;
     height: 350px;
     overflow-y:scroll;
-    margin:
     /* margin: 0 5%; */
 }
+
 .chatSet{
   margin: 0 5%;
   background-color: lightskyblue;
@@ -755,6 +905,76 @@
   -webkit-text-stroke: 1px #000;
   display: inline-block;
   margin-left: 20%;
+}
+
+/*吹き出し*/
+.balloon_l,
+.balloon_r{
+  margin: 30px 0;
+  display:flex;
+  justify-content: flex-start;
+  align-items: flex-start; /*縦位置を上揃え*/
+/*   align-items: center; */ /*縦位置を真ん中揃え*/
+}
+.balloon_r{
+
+  justify-content:flex-end;
+}
+.faceicon{
+
+  height: 48px; 
+  width: 70px;
+  position: relative;
+}
+
+.balloon_r .faceicon{
+  margin-left:25px;
+}
+.balloon_l .faceicon{
+  margin-right:25px;
+}
+.balloon_r .faceicon{
+  order:2 !important;
+}
+.says {
+  max-width:200px; /*最大幅は任意*/
+  display: flex;
+  flex-wrap: wrap;
+  position: relative;
+  padding: 17px 13px 15px 18px;
+  border-radius: 12px;
+  background: #99dddd;/*色は任意*/
+  box-sizing:border-box;
+  margin:0 !important;
+  line-height:1.5;
+/*   align-items: center; */
+}
+.says p{
+  margin:8px 0 0 !important; 
+  max-width:150px;
+  word-wrap:break-word;
+  text-align: left;
+}
+.says p:first-child{
+  margin-top:0 !important;
+  max-width:150px;
+  word-wrap:break-word;
+  text-align: left;
+  
+}
+.says:after {
+  content: "";
+  position: absolute;
+  border: 10px solid transparent;
+/*   margin-top:-3px;  */
+}
+.balloon_l .says:after {
+  left: -26px;
+  border-right: 22px solid #99dddd;
+}
+.balloon_r .says:after {
+  right: -26px;
+  border-left: 22px solid #99dddd;
 }
 
 /*Transitions*/
@@ -804,3 +1024,4 @@
   /*font-family: 'Lato', sans-serif;*/ }
 
 /***************************** end of country transition *********************/
+

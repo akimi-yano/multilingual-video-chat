@@ -37,6 +37,7 @@ const NameForm = () => {
     const onSubmitHandler=e=>{
         e.preventDefault();
         context.setName(formState)
+        context.setAvatar([numState, numEyeState, numMouthState])
         navigate('/chat')
     }
 
@@ -57,7 +58,7 @@ const NameForm = () => {
     const classes = useStyles();
 
     const addNum=()=>{
-      if (numState==11){
+      if (numState==17){
         setNumState(1)
       }
       else{
@@ -66,7 +67,7 @@ const NameForm = () => {
     }
     const reduceNum=()=>{
       if (numState==1){
-        setNumState(11)
+        setNumState(17)
       }
       else{
         setNumState(numState-1)
@@ -105,7 +106,7 @@ const NameForm = () => {
       }
     }
     const randomize=()=>{
-      setNumState(Math.floor(Math.random() * 11) + 1)
+      setNumState(Math.floor(Math.random() * 17) + 1)
       setNumEyeState(Math.floor(Math.random() * 31) + 1)
       setNumMouthState(Math.floor(Math.random() * 24) + 1)
     }
@@ -158,32 +159,41 @@ const NameForm = () => {
             </form>
             <div style={{border:"1px solid black", height: '200px', width: '300px', margin: 'auto'}}>
               <img onClick={randomize} src= {process.env.PUBLIC_URL + '/randomize.gif'}/>
+              <div style={{border:"1px solid black", width: '80px', height:'80px', borderRadius:"50%"}}>
         <img onClick={reduceNum} className={'arrowLeft'+ arrowXLeft.toString()} onMouseEnter={changeColorXLeft} onMouseLeave={resetColorXLeft} src= {process.env.PUBLIC_URL + '/arrow.gif'}/>
-        <img className={'x'+ numState.toString()} src= {process.env.PUBLIC_URL + '/color_atlas.gif'}/>
+        <div className={'x'+ numState.toString()} >
+        <img src= {process.env.PUBLIC_URL + '/color_atlas.gif'}/>
+        </div>
         <img onClick={addNum} className={'arrowRight'+ arrowXRight.toString()} onMouseEnter={changeColorXRight} onMouseLeave={resetColorXRight} src= {process.env.PUBLIC_URL + '/arrow.gif'}/> 
         
-        <img onClick={reduceEyeNum} className={'arrowLeftY'+ arrowYLeft.toString()} onMouseEnter={changeColorYLeft} onMouseLeave={resetColorYLeft} src= {process.env.PUBLIC_URL + '/arrow.gif'}/>
+        {/* <img onClick={reduceEyeNum} className={'arrowLeftY'+ arrowYLeft.toString()} onMouseEnter={changeColorYLeft} onMouseLeave={resetColorYLeft} src= {process.env.PUBLIC_URL + '/arrow.gif'}/>
         <img className={'y'+ numEyeState.toString()} src= {process.env.PUBLIC_URL + '/eyes_atlas.gif'}/>
         <img onClick={addEyeNum} className={'arrowRightY'+ arrowYRight.toString()} onMouseEnter={changeColorYRight} onMouseLeave={resetColorYRight} src= {process.env.PUBLIC_URL + '/arrow.gif'}/> 
         
         <img onClick={reduceMouthNum} className={'arrowLeftZ'+ arrowZLeft.toString()} onMouseEnter={changeColorZLeft} onMouseLeave={resetColorZLeft} src= {process.env.PUBLIC_URL + '/arrow.gif'}/>
         <img className={'z'+ numMouthState.toString()} src= {process.env.PUBLIC_URL + '/mouth_atlas.gif'}/>
-        <img onClick={addMouthNum} className={'arrowRightZ'+ arrowZRight.toString()} onMouseEnter={changeColorZRight} onMouseLeave={resetColorZRight} src= {process.env.PUBLIC_URL + '/arrow.gif'}/> 
+        <img onClick={addMouthNum} className={'arrowRightZ'+ arrowZRight.toString()} onMouseEnter={changeColorZRight} onMouseLeave={resetColorZRight} src= {process.env.PUBLIC_URL + '/arrow.gif'}/>  */}
+          
+        </div>
           </div>
           </Paper>
 
           <Paper elevation={3} style={{display:'inline-block'}} >
           <HelpIcon style={{ fontSize: 40, color: "gray", margin:'15px', marginBottom: '-10px' }} />
           <div style={{margin:'20px', padding: '5px', fontSize:'15px'}}>
+          
           <Button style={{height:'50px', margin:'0px 10px'}} variant="outlined" color="primary">About</Button>
           <Button style={{height:'50px', margin:'0px 10px'}} variant="outlined" color="primary">How to use</Button>
           <Button style={{height:'50px', margin:'0px 10px'}} variant="outlined" color="primary">Technologies</Button>
-  
+          <div class="crop">
+ 
+        <img src= {process.env.PUBLIC_URL + '/arrow.gif'}/>
+    </div>
           </div>
           </Paper>
     </div>
   
-            
+           
         </div>
     )
 }

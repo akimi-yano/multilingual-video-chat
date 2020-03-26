@@ -13,7 +13,9 @@ import tokenUrl from "../config/tokenUrl.js"
 
 const Contexts = (props) => {
     // user name
-    const [name, setName] = useState("")
+    const [name, setName] = useState("anonymous")
+    // avatar
+    const [avatar, setAvatar]=useState([1,1,1])
     // firebase connection
     const [db, setDb] = useState(null)
     // speech recognition
@@ -53,7 +55,7 @@ const Contexts = (props) => {
 
     return (
         <div>
-            <Context.Provider value={{name, setName, db, webkitSpeech, speechConfig, audioConfig}}>
+            <Context.Provider value={{name, setName, db, webkitSpeech, speechConfig, audioConfig, avatar, setAvatar}}>
                 {props.children}
             </Context.Provider>
         </div>

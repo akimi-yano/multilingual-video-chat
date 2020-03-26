@@ -13,6 +13,11 @@ const Map = (props) => {
     const [highlightedCountry, setHighlightedCountry] = useState("")
 
     useEffect(() => {
+        if (context.name == 'anonymous') {
+            navigate('/')
+        }
+    })
+    useEffect(() => {
         map = L.map('map').setView([51.505, -50.50], 3);
         // let myMap = L.map("worldMap").setView([40, -74.50], 9);
         L.tileLayer('https://api.mapbox.com/styles/v1/{user_name}/{style_id}/tiles/256/{z}/{x}/{y}?access_token={mapboxAccessToken}', {
@@ -36,15 +41,15 @@ const Map = (props) => {
 
                 let countriesOnEachFeature = (feature, layer) => {
                     let country = feature.properties.name
-                    let color = rooms[country] ? (rooms[country] == 1 ? 'pink' : 'black') : ''
+                    let color = rooms[country] ? (rooms[country] == 1 ? 'palevioletred;' : 'black') : ''
                     layer.on(
                         {
                             mouseover: highlightFeature,
-                            mouseout: e => e.target.setStyle({ fillColor: color, opacity: 0.5, fillOpacity: 0.5 }),
+                            mouseout: e => e.target.setStyle({ fillColor: color, opacity: 0.2, fillOpacity: 0.2 }),
                             click: zoomToFeature
                         }
                     )
-                    layer.setStyle({ fillColor: color, opacity: 0.5, fillOpacity: 0.5 })
+                    layer.setStyle({ fillColor: color, opacity: 0.2, fillOpacity: 0.2 })
                 }
                 if (geojson) {
                     geojson.remove()
