@@ -40,7 +40,7 @@ const NameForm = () => {
     const onSubmitHandler=e=>{
         e.preventDefault();
         let avatar = [numState, numEyeState, numMouthState]
-        context.setupNameAvatarDbRoomToken(formState, avatar)
+        context.setupNameAvatar(formState, avatar)
         navigate('/chat')
     }
 

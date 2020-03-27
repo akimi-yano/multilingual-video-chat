@@ -8,16 +8,11 @@ import firebaseConfig from "../config/firebaseConfig.js"
 import msTokenUrl from "../config/tokenUrl.js"
 import cookie from 'cookie'
 
-// dev - make sure to add bypass in server/local.settings.json:
+// dev - make sure to add CORS bypass in server/local.settings.json:
 // https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local?tabs=macos%2Ccsharp%2Cbash#local-settings-file
-// const tokenUrl = 'http://localhost:7071/api/token'
+// const msTokenUrl = 'http://localhost:7071/api/token'
 // deployed - make sure cors is configured on Azure portal via Function Apps -> Platform Features
-// const tokenUrl = 'in/firebaseConfig.js'
-
-// local dev
-// const fbTokenUrl = `http://localhost:5001/${firebaseConfig.projectId}/us-central1/token?authId=`
-// deployed
-const fbTokenUrl = `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net/token?authId=`
+// const msTokenUrl = 'in/firebaseConfig.js'
 
 const DEFAULT_NAME = 'anonymous'
 const DEFAULT_AVATAR = [1, 1, 1]
@@ -39,15 +34,28 @@ const Contexts = (props) => {
     const [audioConfig, setAudioConfig] = useState(null);
 
     useEffect(()=>{
+        setupDb()
         setupWebkitSpeech()
         setupTranslator()
+        setupNameAvatar()
     },[])
 
     useEffect(() => {
-        setupNameAvatarDbRoomToken()
-    }, [name])
+        if (db) {
+            setupRoom()
+        }
+    }, [db])
 
-    const setupNameAvatarDbRoomToken = (inputName, inputAvatar) => {
+    const setupDb = () => {
+        firebase.initializeApp(firebaseConfig)
+        firebase.auth().signInAnonymously()
+        .then(() => {
+            setDb(firebase.firestore())
+        })
+        .catch(e => console.log(e))
+    }
+
+    const setupNameAvatar = (inputName, inputAvatar) => {
         // handle inputs
         if (inputName) {
             document.cookie = `name=${inputName}; path=/`
@@ -74,39 +82,26 @@ const Contexts = (props) => {
             document.cookie = `avatar=${JSON.stringify(avatarToUse)}; path=/`
         }
         setAvatar(avatarToUse)
+    }
 
-        // db setup
-        if (firebase.apps.length == 0) {
-            firebase.initializeApp(firebaseConfig)
-        }
-        let database = firebase.firestore()
-        setDb(database)
-
-        // room setup
-        if (cookies.room) {
-            database.collection('rooms').doc(cookies.room).get()
+    const setupRoom = () => {
+        let cookieRoom = cookie.parse(document.cookie).room
+        if (cookieRoom) {
+            db.collection('rooms').doc(cookieRoom).get()
             .then(snapshot => {
                 if (snapshot.exists) {
-                    setRoom(cookies.room)
+                    setRoom(cookieRoom)
                 } else {
-                    createAndSetRoom(database)
+                    createAndSetRoom()
                 }
             })
         } else {
-            createAndSetRoom(database)
+            createAndSetRoom()
         }
-
-        // token setup
-        fetch(fbTokenUrl + nameToUse)
-        .then(resp => resp.json())
-        .then(body => {
-            firebase.auth().signInWithCustomToken(body.token)
-        })
-        .catch(e => console.log(e))
     }
 
-    const createAndSetRoom = (database) => {
-        database.collection('rooms').add({})
+    const createAndSetRoom = () => {
+        db.collection('rooms').add({})
         .then(snapshot => {
             setRoom(snapshot.id)
             document.cookie = `room=${snapshot.id}; path=/`
@@ -133,7 +128,7 @@ const Contexts = (props) => {
 
     return (
         <div>
-            <Context.Provider value={{name, setupNameAvatarDbRoomToken, db, room, webkitSpeech, speechConfig, audioConfig, avatar, setAvatar}}>
+            <Context.Provider value={{name, setupNameAvatar, db, room, webkitSpeech, speechConfig, audioConfig, avatar, setAvatar}}>
                 {props.children}
             </Context.Provider>
         </div>
