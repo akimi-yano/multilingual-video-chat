@@ -189,6 +189,8 @@ const Chat = (props) => {
             if (!snapshot.exists) {
                 console.log("Room deleted unexpectedly, leaving chat")
                 hangUp()
+                // get a new room
+                context.setupNameDbRoomToken()
                 return
             }
 
@@ -217,6 +219,8 @@ const Chat = (props) => {
             if (!snapshot.exists) {
                 console.log("Room deleted unexpectedly, leaving chat")
                 hangUp()
+                // get a new room
+                context.setupNameDbRoomToken()
                 return
             }
 
@@ -561,7 +565,7 @@ const Chat = (props) => {
                         context.speechConfig.speechRecognitionLanguage = spokenLang
                         context.speechConfig.addTargetLanguage(translatedLang)
                         let recognizer = new SpeechSDK.TranslationRecognizer(context.speechConfig, context.audioConfig)
-                        recognizer.recognizeOnceAsync(onTranslationDone)
+                        recognizer.recognizeOnceAsync(onTranslationDone, e=> {console.log(e); setTranslationState(false)})
                     }}>
                         <Button
                         style={{ height: "45px" , marginTop: "18px", marginLeft: "6px", marginRight: "0px"}}

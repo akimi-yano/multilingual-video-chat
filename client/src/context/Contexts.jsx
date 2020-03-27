@@ -19,11 +19,15 @@ import cookie from 'cookie'
 // deployed
 const fbTokenUrl = `https://us-central1-${firebaseConfig.projectId}.cloudfunctions.net/token?authId=`
 
+const DEFAULT_NAME = 'anonymous'
+const DEFAULT_AVATAR = [1, 1, 1]
+
+
 const Contexts = (props) => {
     // user name
-    const [name, setName] = useState("anonymous")
+    const [name, setName] = useState(DEFAULT_NAME)
     // avatar
-    const [avatar, setAvatar]=useState([1,1,1])
+    const [avatar, setAvatar]=useState(DEFAULT_AVATAR)
     // firebase connection
     const [db, setDb] = useState(null)
     // room
@@ -35,70 +39,79 @@ const Contexts = (props) => {
     const [audioConfig, setAudioConfig] = useState(null);
 
     useEffect(()=>{
-        setupDbAndRoom()
         setupWebkitSpeech()
         setupTranslator()
-        let cookieName = cookie.parse(document.cookie).name
-        setNameStateAndCookie(cookieName)
     },[])
 
     useEffect(() => {
-        let cookies = cookie.parse(document.cookie)
-        if (cookies.token) {
-            firebase.auth().signInWithCustomToken(cookies.token)
-            .catch(function(e) {
-                console.log('auth failed, re-fetching token')
-                setupFbToken(name)
-            })
-        } else {
-            setupFbToken(name)
-        }
-
-
+        setupNameAvatarDbRoomToken()
     }, [name])
 
-    const setupFbToken = (authId) => {
-        let token
-        fetch(fbTokenUrl + authId)
-        .then(resp => resp.json())
-        .then(body => {
-            token = body.token
-            firebase.auth().signInWithCustomToken(token)
-        })
-        .then(() => {
-            document.cookie = `token=${token}`
-            // also set the name here
-            document.cookie = `name=${authId}`
-        })
-        .catch(e => console.log(e))
-    }
+    const setupNameAvatarDbRoomToken = (inputName, inputAvatar) => {
+        // handle inputs
+        if (inputName) {
+            document.cookie = `name=${inputName}; path=/`
+        }
+        if (inputAvatar) {
+            document.cookie = `avatar=${JSON.stringify(inputAvatar)}; path=/`
+        }
+        let cookies = cookie.parse(document.cookie)
 
-    const setupDbAndRoom = () => {
-        firebase.initializeApp(firebaseConfig)
+        // name setup
+        let nameToUse = name ? name : DEFAULT_NAME
+        if (cookies.name) {
+            nameToUse = cookies.name
+        } else {
+            document.cookie = `name=${nameToUse}; path=/`
+        }
+        setName(nameToUse)
+
+        // avatar setup
+        let avatarToUse = avatar ? avatar : DEFAULT_AVATAR
+        if (cookies.avatar) {
+            avatarToUse = JSON.parse(cookies.avatar)
+        } else {
+            document.cookie = `avatar=${JSON.stringify(avatarToUse)}; path=/`
+        }
+        setAvatar(avatarToUse)
+
+        // db setup
+        if (firebase.apps.length == 0) {
+            firebase.initializeApp(firebaseConfig)
+        }
         let database = firebase.firestore()
         setDb(database)
 
-        let cookies = cookie.parse(document.cookie)
+        // room setup
         if (cookies.room) {
             database.collection('rooms').doc(cookies.room).get()
             .then(snapshot => {
                 if (snapshot.exists) {
                     setRoom(cookies.room)
                 } else {
-                    createRoom(database)
+                    createAndSetRoom(database)
                 }
             })
         } else {
-            createRoom(database)
+            createAndSetRoom(database)
         }
+
+        // token setup
+        fetch(fbTokenUrl + nameToUse)
+        .then(resp => resp.json())
+        .then(body => {
+            firebase.auth().signInWithCustomToken(body.token)
+        })
+        .catch(e => console.log(e))
     }
 
-    const createRoom = (database) => {
+    const createAndSetRoom = (database) => {
         database.collection('rooms').add({})
         .then(snapshot => {
             setRoom(snapshot.id)
-            document.cookie = `room=${snapshot.id}`
+            document.cookie = `room=${snapshot.id}; path=/`
         })
+        .catch(e => console.log(e))
     }
 
     const setupWebkitSpeech = () => {
@@ -118,16 +131,9 @@ const Contexts = (props) => {
         })
     }
 
-    const setNameStateAndCookie = (newName) => {
-        newName = newName ? newName : 'anonymous'
-        document.cookie = `name=${newName}`
-        setName(newName)
-        
-    }
-
     return (
         <div>
-            <Context.Provider value={{name, setNameStateAndCookie, db, room, webkitSpeech, speechConfig, audioConfig, avatar, setAvatar}}>
+            <Context.Provider value={{name, setupNameAvatarDbRoomToken, db, room, webkitSpeech, speechConfig, audioConfig, avatar, setAvatar}}>
                 {props.children}
             </Context.Provider>
         </div>

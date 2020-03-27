@@ -39,8 +39,8 @@ const NameForm = () => {
     }
     const onSubmitHandler=e=>{
         e.preventDefault();
-        context.setNameStateAndCookie(formState)
-        context.setAvatar([numState, numEyeState, numMouthState])
+        let avatar = [numState, numEyeState, numMouthState]
+        context.setupNameAvatarDbRoomToken(formState, avatar)
         navigate('/chat')
     }
 
