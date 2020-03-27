@@ -1162,13 +1162,13 @@
 }
 #remoteVideo{
   /* display: inline-block; */
-  height:20vw;
+  height:19vw;
   width:25vw;
   display: block;
 }
 #localVideo{
   /* display: inline-block; */
-  height:20vw;
+  height:19vw;
   width:25vw;
   display: block;
 }
