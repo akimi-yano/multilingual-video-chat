@@ -203,16 +203,17 @@ const NameForm = () => {
           : accessState === 1
             ? <div><p className="infoText">1. Choose an avatar and name.</p>
             <p className="infoText">2. Choose a country from the world map on the next page. Highlighted countries show that there is someone waiting for you! You can also start a chat by choosing a country that is not highlighted.</p>
-            <p className="infoText">3. Once a peer arrives, start  a chat ! You can send a text, call and video chat ! You have the option to translate what you say by selecting your speaking language and translated language.</p></div>
-            : <div><ul><li className="infoText" >React</li>
+            <p className="infoText">3. Once a peer arrives, start  a chat! You can send a text, call and video chat! You have the option to translate what you say by selecting your speaking language and translated language.</p></div>
+            : <div><ul><li className="infoText" >React & Material UI</li>
             <li className="infoText">Web RTC</li> 
             <li className="infoText">Firebase - Firestore</li> 
             <li className="infoText">Azure - Cloud Functions</li> 
             <li className="infoText">Azure - Speech Translation API</li> 
             <li className="infoText">Web Speech API</li> 
-            <li className="infoText">Leaflet</li> 
-            <li className="infoText">Mapbox</li> 
-            <li className="infoText">Material UI</li></ul></div>
+            <li className="infoText">Leaflet & Mapbox</li> 
+            <li className="infoText">Illustrator & Photoshop</li>
+            </ul></div>
+
         }
 
 

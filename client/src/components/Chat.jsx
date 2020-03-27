@@ -537,7 +537,7 @@ const Chat = (props) => {
                     <label style={{fontFamily: "'Chelsea Market', cursive"}}>Speaking in </label>
                     <FormControl variant="outlined">
 
-                    <Select style={{width: "119px", height: "45px", fontFamily: "'Chelsea Market', cursive"}} value={spokenLang} onChange={e=> setSpokenLang(e.target.value) } labelId="demo-simple-select-outlined-label">
+                    <Select style={{width: "119px", height: "45px", fontFamily: "'Chelsea Market', cursive", marginLeft: "-11.5px"}} value={spokenLang} onChange={e=> setSpokenLang(e.target.value) } labelId="demo-simple-select-outlined-label">
                         <MenuItem value="en-US" default>English</MenuItem>
                         <MenuItem value="ko-KR">한국</MenuItem>
                         <MenuItem value="zh-CN">中文</MenuItem>
@@ -553,7 +553,7 @@ const Chat = (props) => {
                     {/* <label><LanguageIcon />Translate to </label> */}
                     <label style={{fontFamily: "'Chelsea Market', cursive"}}>Translate to </label>
                     <FormControl variant="outlined">
-                    <Select style={{width: "119px", height: "45px", fontFamily: "'Chelsea Market', cursive"}} value={translatedLang} onChange={e=> setTranslatedLang(e.target.value)} labelId="demo-simple-select-outlined-label">
+                    <Select style={{width: "119px", height: "45px", fontFamily: "'Chelsea Market', cursive", marginLeft: "6px"}} value={translatedLang} onChange={e=> setTranslatedLang(e.target.value)} labelId="demo-simple-select-outlined-label">
                         <MenuItem value="en">English</MenuItem>
                         <MenuItem value="ko">한국</MenuItem>
                         <MenuItem value="zh-Hant">中文</MenuItem>
@@ -575,7 +575,7 @@ const Chat = (props) => {
                         recognizer.recognizeOnceAsync(onTranslationDone, e=> {console.log(e); setTranslationState(false)})
                     }}>
                         <Button
-                        style={{ height: "45px" , marginTop: "18px", marginLeft: "6px", marginRight: "0px"}}
+                        style={{ height: "45px" , marginTop: "19px", marginLeft: "6px", marginRight: "0px"}}
                         disabled={translationState} type="submit" variant="contained" color="secondary" className={classes.button} endIcon={<TranslateIcon />}>Speak</Button>
                     </form>
                 </div>
