@@ -53,7 +53,7 @@ const NameForm = () => {
           flexWrap: 'wrap',
           '& > *': {
             width: "500px",
-            height: theme.spacing(55),
+            height: theme.spacing(64),
             margin: '10px auto',
           },
         },
@@ -150,12 +150,12 @@ const NameForm = () => {
       setArrowZRight(1)
     }
     return (
-        <div id="nameForm">
-            <h2 className="namePage">ice candi</h2>
+        <div id="nameForm" className="element">
+            <h2 className="namePage"><span className="jump">i</span>ce cand<span className="jump">i</span></h2>
             <div className={classes.root}>
       <Paper elevation={3} style={{display:'inline-block'}}>
       <CreateIcon style={{ fontSize: 40, color: "gray", margin:'15px', marginBottom: '-10px'}} />
-            <p style={{fontSize:'15px', margin: '25px'}} >Choose your avatar and name to start</p>
+            <p style={{fontSize:'16px', margin: '25px',  fontFamily: "'Chelsea Market', cursive"}} >Choose your avatar and name to start</p>
             <div style={{border:"3px dotted black", height: '200px', width: '320px', margin: 'auto'}}>
               <img onClick={randomize} src= {process.env.PUBLIC_URL + '/randomize.gif'}/>
               <div style={{border:"1px solid transparent", margin: "auto", width: '80px', height:'80px', borderRadius:"50%"}}>
@@ -181,7 +181,7 @@ const NameForm = () => {
         </div>
         <form onSubmit={onSubmitHandler}>
 
-                <input placeholder="Your Name" style={{height:'40px', width:'160px', margin: '25px 25px 25px -5px', padding: '5px', fontSize:'15px'}} onChange={onChangeHandler} type="text" value={formState} />
+                <input placeholder="Your Name" style={{height:'40px', width:'160px', margin: '25px 25px 25px -5px', padding: '5px', fontSize:'15px', fontFamily: "'Chelsea Market', cursive", outline:'none'}} onChange={onChangeHandler} type="text" value={formState} />
                 <Button style={{height:'50px'}} type="submit" variant="contained" color="primary" endIcon={<LocalAirportIcon/>}>Start</Button>
             </form>
           
@@ -197,10 +197,22 @@ const NameForm = () => {
           </div>
           <div>
           {accessState===0
-          ? <div><p>adsf</p></div>
+          ? <div><p className="infoText">ICE CANDI is a peer-to-peer multi-lingual video chat webapp. A user can connect with another peer and communicate in different languages using the voice translation feature.</p>
+          <p className="infoText">Supported media types: text-chat (typing and voice), call and video chat.</p>
+          <p className="infoText">Languages: English, Spanish, French, Japanese, Chinese, Portuguese, Korean, Russian.</p></div>
           : accessState === 1
-            ? <div><p>asdfasdf</p></div>
-            : <div><p>adsfasdfasdf</p></div>
+            ? <div><p className="infoText">1. Choose an avatar and name.</p>
+            <p className="infoText">2. Choose a country from the world map on the next page. Highlighted countries show that there is someone waiting for you! You can also start a chat by choosing a country that is not highlighted.</p>
+            <p className="infoText">3. Once a peer arrives, start  a chat ! You can send a text, call and video chat ! You have the option to translate what you say by selecting your speaking language and translated language.</p></div>
+            : <div><ul><li className="infoText" >React</li>
+            <li className="infoText">Web RTC</li> 
+            <li className="infoText">Firebase - Firestore</li> 
+            <li className="infoText">Azure - Cloud Functions</li> 
+            <li className="infoText">Azure - Speech Translation API</li> 
+            <li className="infoText">Web Speech API</li> 
+            <li className="infoText">Leaflet</li> 
+            <li className="infoText">Mapbox</li> 
+            <li className="infoText">Material UI</li></ul></div>
         }
 
 

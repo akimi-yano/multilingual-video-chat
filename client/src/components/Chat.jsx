@@ -447,8 +447,8 @@ const Chat = (props) => {
         <div style={{width: "100%", height: "100%", zIndex: "2", position: "absolute"}}>
         <div id="chatRoom">
             <div class='chatHeader'>
-                <h1 class='chatTitle'>{props.country} Chat Room</h1>
-                <Button style={{ height: "45px" }} onClick={hangUp} id="hangupBtn" variant="contained" color="secondary" className={classes.button} endIcon={<HomeIcon />} >Leave</Button>
+                <h1><span className="chatTitle">{props.country}</span > <span className="chatTitle">Chat</span> <span className="chatTitle">Room</span></h1>
+                <Button style={{ height: "45px" }} onClick={hangUp} id="hangupBtn" variant="outlined" color="primary" className={classes.button} endIcon={<HomeIcon />} >Leave</Button>
             </div>
             <div id="buttons">
                 <Button style={{ height: "45px" }} onClick={e => toggleTrack('audio')} id="toggleAudio" variant="contained" color="primary" className={classes.button} endIcon={audioState ? <PhoneDisabledIcon /> : <PhoneEnabledIcon />}>Turn {audioState ? "Off" : "On"} Audio</Button>
@@ -468,19 +468,21 @@ const Chat = (props) => {
 
                                 <div className="balloon_r">
                                     <div className="faceicon" style={{ display: "block" }}>
+                                    <div style={{border:"1px solid transparent", margin: "auto", width: '80px', height:'80px', borderRadius:"50%"}}>
                                         <div style={{ zoom: '140%' }} className={'x' + (context.avatar[0]).toString()}>
                                             <img src={process.env.PUBLIC_URL + '/color_atlas.gif'} />
                                         </div>
                                         <div style={{ zoom: '140%' }} className={'y' + (context.avatar[1]).toString()}>
                                             <img src={process.env.PUBLIC_URL + '/eyes_atlas.gif'} />
                                         </div>
-                                        <div style={{ zoom: '90%' }} className={'z' + (context.avatar[2]).toString()}>
+                                        <div style={{ zoom: '77%' }} className={'z' + (context.avatar[2]).toString()}>
                                             <img src={process.env.PUBLIC_URL + '/mouth_atlas.gif'} />
                                         </div>
-                                        <p style={{ maxWidth: '70px', wordWrap: 'break-word', marginTop: '60px', fontSize: '12px', marginLeft: '-5px' }}>{item.sender} (me)</p>
+                                        </div>
+                                        <p style={{ maxWidth: '70px', wordWrap: 'break-word', marginTop: '-13px', fontSize: '11px', marginLeft: '-5px', fontFamily: "'Chelsea Market', cursive" }}>{item.sender} (me)</p>
 
                                     </div>
-                                    <div className="says">
+                                    <div className="says" style={{backgroundColor:"palevioletred", color: "black"}}>
                                         <p>{item.text}</p></div>
                                 </div>
 
@@ -490,23 +492,25 @@ const Chat = (props) => {
                                     ?
                                     <div className="balloon_l">
                                         <div className="faceicon" style={{ display: "block", marginRight: '5px' }}>
+                                        <div style={{border:"1px solid transparent", margin: "auto", width: '80px', height:'80px', borderRadius:"50%"}}>
                                             <div style={{ zoom: '140%' }} className={'x' + (item.avatar[0]).toString()}>
                                                 <img src={process.env.PUBLIC_URL + '/color_atlas.gif'} />
                                             </div>
                                             <div style={{ zoom: '140%' }} className={'y' + (item.avatar[1]).toString()}>
                                                 <img src={process.env.PUBLIC_URL + '/eyes_atlas.gif'} />
                                             </div>
-                                            <div style={{ zoom: '90%' }} className={'z' + (item.avatar[2]).toString()}>
+                                            <div style={{ zoom: '77%' }} className={'z' + (item.avatar[2]).toString()}>
                                                 <img src={process.env.PUBLIC_URL + '/mouth_atlas.gif'} />
                                             </div>
-                                            <p style={{ maxWidth: '70px', wordWrap: 'break-word', marginTop: "60px", fontSize: '12px' }}>{item.sender}</p>
+                                            </div>
+                                            <p style={{ maxWidth: '70px', wordWrap: 'break-word', marginTop: "-13px", fontSize: '11px', fontFamily: "'Chelsea Market', cursive"}}>{item.sender}</p>
                                         </div>
-                                        <div className="says">
+                                        <div className="says" style={{backgroundColor:"black", color: "white"}}>
                                             <p>{item.text}</p></div>
                                     </div>
                                     :
                                     <div>
-                                        <p>{item.text}</p>
+                                        <p style={{fontFamily: "'Chelsea Market', cursive"}}>{item.text}</p>
                                     </div>
 
                             }
@@ -519,7 +523,7 @@ const Chat = (props) => {
                 <div className="messageForm">
 
                     <form className="messageOnSubmit" onSubmit={sendChatMessage}>
-                        <input style={{ height: "40px", width: "150px", fontSize: "20px", marginTop: '12px', marginLeft: '10px' }} type="text" onChange={e => setChatText(e.target.value)} value={chatText} />
+                        <input style={{ height: "40px", width: "150px", fontSize: "20px", marginTop: '12px', marginLeft: '10px' , outline: 'none', fontFamily: "'Chelsea Market', cursive"}} type="text" onChange={e => setChatText(e.target.value)} value={chatText} />
                         <Button disabled={!chatText} style={{ width: '9px', height: "45px", marginTop: '3px', marginLeft: '15px' }} type="submit" variant="contained" color="primary" className={classes.button}><SendIcon /></Button>
                     </form>
                     <Button style={{ display: "inline-block" }} onClick={startWebkitSpeech} disabled={speechState} style={{ width: '9px', height: "45px", marginTop: '3px' }} type="submit" variant="contained" color="primary" className={classes.button}><MicIcon /></Button>
@@ -530,10 +534,10 @@ const Chat = (props) => {
 <div className="translationButtons">
                 <div>
                     {/* <label><LanguageIcon />Speaking in </label> */}
-                    <label>Speaking in </label>
+                    <label style={{fontFamily: "'Chelsea Market', cursive"}}>Speaking in </label>
                     <FormControl variant="outlined">
 
-                    <Select style={{width: "119px", height: "45px"}} value={spokenLang} onChange={e=> setSpokenLang(e.target.value) } labelId="demo-simple-select-outlined-label">
+                    <Select style={{width: "119px", height: "45px", fontFamily: "'Chelsea Market', cursive"}} value={spokenLang} onChange={e=> setSpokenLang(e.target.value) } labelId="demo-simple-select-outlined-label">
                         <MenuItem value="en-US" default>English</MenuItem>
                         <MenuItem value="ko-KR">한국</MenuItem>
                         <MenuItem value="zh-CN">中文</MenuItem>
@@ -547,9 +551,9 @@ const Chat = (props) => {
                 </div>
                 <div>
                     {/* <label><LanguageIcon />Translate to </label> */}
-                    <label>Translate to </label>
+                    <label style={{fontFamily: "'Chelsea Market', cursive"}}>Translate to </label>
                     <FormControl variant="outlined">
-                    <Select style={{width: "119px", height: "45px"}} value={translatedLang} onChange={e=> setTranslatedLang(e.target.value)} labelId="demo-simple-select-outlined-label">
+                    <Select style={{width: "119px", height: "45px", fontFamily: "'Chelsea Market', cursive"}} value={translatedLang} onChange={e=> setTranslatedLang(e.target.value)} labelId="demo-simple-select-outlined-label">
                         <MenuItem value="en">English</MenuItem>
                         <MenuItem value="ko">한국</MenuItem>
                         <MenuItem value="zh-Hant">中文</MenuItem>
@@ -561,7 +565,7 @@ const Chat = (props) => {
                     </Select>
                     </FormControl>
                 </div>
-                <div>
+                <div> 
                     <form onSubmit={e => {
                         e.preventDefault()
                         setTranslationState(true)
