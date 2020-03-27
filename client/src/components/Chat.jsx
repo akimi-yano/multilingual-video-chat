@@ -19,6 +19,9 @@ import LanguageIcon from '@material-ui/icons/Language';
 import PhoneDisabledIcon from '@material-ui/icons/PhoneDisabled';
 import PhoneEnabledIcon from '@material-ui/icons/PhoneEnabled';
 import SendIcon from '@material-ui/icons/Send';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
 
 
 const useStyles = makeStyles(theme => ({
@@ -64,8 +67,6 @@ const Chat = (props) => {
     // refs for various HTML elements
     const localVideoRef = useRef(null)
     const remoteVideoRef = useRef(null)
-    const spokenLangRef = useRef(null)
-    const translatedLangRef = useRef(null)
 
     // ref to keep the chat scroll bar scrolled down
     const messagesEndRef = useRef(null)
@@ -82,25 +83,28 @@ const Chat = (props) => {
     // buttons buttons buttons
     const [speechState, setSpeechState] = useState(false)
     const [translationState, setTranslationState] = useState(false)
+    // language
+    const [spokenLang, setSpokenLang] = useState('en-US')
+    const [translatedLang, setTranslatedLang] = useState('en')
 
     useEffect(() => {
-        window.addEventListener("beforeunload", event => {hangUp()})
+        window.addEventListener("beforeunload", event => { hangUp() })
     })
 
     useEffect(() => {
         // When entering a Chat, either create a new room or join one
         if (context.room) {
             context.db.collection('countries').doc(props.country).get()
-            .then(countrySnapshot => {
-                if (!countrySnapshot.exists) {
-                    context.db.collection('countries').doc(props.country).set({readRoom: context.room})
-                    startRoom()
-                } else {
-                    readRoom = countrySnapshot.data().readRoom
-                    context.db.collection('countries').doc(props.country).delete()
-                    joinRoom()
-                }
-            })
+                .then(countrySnapshot => {
+                    if (!countrySnapshot.exists) {
+                        context.db.collection('countries').doc(props.country).set({ readRoom: context.room })
+                        startRoom()
+                    } else {
+                        readRoom = countrySnapshot.data().readRoom
+                        context.db.collection('countries').doc(props.country).delete()
+                        joinRoom()
+                    }
+                })
         }
     }, [context.room])
 
@@ -122,11 +126,11 @@ const Chat = (props) => {
     }, [context.webkitSpeech, chatLogState]) // TODO debug why listening on setChatLogState doesn't work
 
     useEffect(() => {
-            if (context.speechConfig && context.audioConfig) {
-                setTranslationState(false)
-            } else {
-                setTranslationState(true)
-            }
+        if (context.speechConfig && context.audioConfig) {
+            setTranslationState(false)
+        } else {
+            setTranslationState(true)
+        }
     }, [context.speechConfig, context.audioConfig])
 
     // to keep the scroll bar for the chat message to be scrolled down
@@ -148,11 +152,11 @@ const Chat = (props) => {
         pc.onnegotiationneeded = () => {
             makingOffer = true;
             pc.setLocalDescription()
-            .then(() => {
-                return context.db.collection('rooms').doc(context.room)
-                .set({ description: pc.localDescription.toJSON() })
-            })
-            .finally(() => makingOffer = false)
+                .then(() => {
+                    return context.db.collection('rooms').doc(context.room)
+                        .set({ description: pc.localDescription.toJSON() })
+                })
+                .finally(() => makingOffer = false)
         };
         // event handler for ice candidate updates
         pc.onicecandidate = (event) => {
@@ -169,7 +173,8 @@ const Chat = (props) => {
         // event handler for channel received
         pc.ondatachannel = (event) => {
             channel = event.channel;
-            channel.onmessage = onChannelMessage;
+            channel.onmessage = onChannelMessage
+            channel.onopen = sendIntro
         }
 
         // Initializer for listening on write room snapshots.
@@ -225,34 +230,34 @@ const Chat = (props) => {
             }
 
             pc.setRemoteDescription(new RTCSessionDescription((description)))
-            .then(() => {
-                if (description.type != "offer") {
-                    console.log("unexpected state during negotiation")
-                    return
-                }
-                pc.setLocalDescription()
                 .then(() => {
-                    return context.db.collection('rooms').doc(context.room)
-                    .set({ description: pc.localDescription.toJSON() })
+                    if (description.type != "offer") {
+                        console.log("unexpected state during negotiation")
+                        return
+                    }
+                    pc.setLocalDescription()
+                        .then(() => {
+                            return context.db.collection('rooms').doc(context.room)
+                                .set({ description: pc.localDescription.toJSON() })
+                        })
                 })
-            })
         })
         unsubscribes.push(unsub)
 
         // listen for new ice candidates
         unsub = context.db.collection('rooms').doc(readRoom)
-        .collection('candidates').onSnapshot(snapshot => {
-            snapshot.docChanges().forEach(change => {
-                if (change.type === "added") {
-                    let candidate = change.doc.data()
-                    pc.addIceCandidate(candidate);
-                // if candidates are being removed, it's time to leave
-                } else if (change.type === "removed") {
-                    hangUp()
-                    return
-                }
+            .collection('candidates').onSnapshot(snapshot => {
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === "added") {
+                        let candidate = change.doc.data()
+                        pc.addIceCandidate(candidate);
+                        // if candidates are being removed, it's time to leave
+                    } else if (change.type === "removed") {
+                        hangUp()
+                        return
+                    }
+                })
             })
-        })
         unsubscribes.push(unsub)
     }
 
@@ -266,16 +271,17 @@ const Chat = (props) => {
         initializePeerConnection()
         initializeReadRoomOnSnapshots()
         pc.setLocalDescription()
-        .then(() => {
-            channel = pc.createDataChannel("sendChannel")
-            channel.onmessage = onChannelMessage
-            context.db.collection('rooms').doc(context.room)
-            .set({ description: pc.localDescription.toJSON() })
-        })
-        .then(() => {
-            // update by "passing back" room id
-            context.db.collection('rooms').doc(readRoom).update({readRoom: context.room})
-        })
+            .then(() => {
+                channel = pc.createDataChannel("sendChannel")
+                channel.onopen = sendIntro
+                channel.onmessage = onChannelMessage
+                context.db.collection('rooms').doc(context.room)
+                    .set({ description: pc.localDescription.toJSON() })
+            })
+            .then(() => {
+                // update by "passing back" room id
+                context.db.collection('rooms').doc(readRoom).update({ readRoom: context.room })
+            })
     }
 
     const hangUp = () => {
@@ -297,30 +303,30 @@ const Chat = (props) => {
 
         p = context.db.collection('countries').doc(props.country).delete()
         promises.push(p)
-            // delete your own candidates
-            p = context.db.collection('rooms').doc(context.room).collection('candidates').get()
+        // delete your own candidates
+        p = context.db.collection('rooms').doc(context.room).collection('candidates').get()
             .then(candidates => {
                 candidates.forEach(candidate => {
                     context.db.collection('rooms').doc(context.room).collection('candidates').doc(candidate.id).delete()
                 })
             })
-            promises.push(p)
-            p = context.db.collection('rooms').doc(context.room).set({})
-            promises.push(p)
+        promises.push(p)
+        p = context.db.collection('rooms').doc(context.room).set({})
+        promises.push(p)
         if (readRoom) {
             // delete readRoom candidates (better chance of full cleanup)
             p = context.db.collection('rooms').doc(readRoom).collection('candidates').get()
-            .then(candidates => {
-                candidates.forEach(candidate => {
-                    context.db.collection('rooms').doc(readRoom).collection('candidates').doc(candidate.id).delete()
+                .then(candidates => {
+                    candidates.forEach(candidate => {
+                        context.db.collection('rooms').doc(readRoom).collection('candidates').doc(candidate.id).delete()
+                    })
                 })
-            })
             promises.push(p)
             p = context.db.collection('rooms').doc(readRoom).set({})
             promises.push(p)
         }
         // init webRTC global vars once cleanup is complete
-        Promise.all(promises).then(() => {initRTC(); initChatLog()})
+        Promise.all(promises).then(() => { initRTC(); initChatLog() })
         navigate(`/leave/${props.country}`)
     }
 
@@ -359,6 +365,11 @@ const Chat = (props) => {
         setChatLogState(chatLog)
     }
 
+    const sendIntro = event => {
+        let chatObj = { sender: context.name, text: `*connected to ${context.name}!*` }
+        channel.send(JSON.stringify(chatObj))
+    }
+
     // event handler for chat sending
     const sendChatMessage = e => {
         e.preventDefault();
@@ -373,7 +384,7 @@ const Chat = (props) => {
 
     const startWebkitSpeech = e => {
         setSpeechState(true)
-        context.webkitSpeech.lang = spokenLangRef.current.value
+        context.webkitSpeech.lang = spokenLang
         context.webkitSpeech.start()
     }
 
@@ -414,7 +425,7 @@ const Chat = (props) => {
 
     // event handler for translation
     const onTranslationDone = (result) => {
-        let translationText = result.translations.get(translatedLangRef.current.value)
+        let translationText = result.translations.get(translatedLang)
         setTranslatedText(translationText)
         let translationObj = { sender: context.name, text: translationText, avatar: context.avatar }
         if (channel && channel.readyState == 'open') {
@@ -426,13 +437,20 @@ const Chat = (props) => {
     }
 
     return (
+        <div style={{width: "100%", height: "100%", zIndex: "2", position: "absolute"}}>
         <div id="chatRoom">
-            <h1>{props.country} Chat Room {context.name}</h1>
-            <h1>{connected ? "Connected!": ""}</h1>
+            <div class='chatHeader'>
+                <h1 class='chatTitle'>{props.country} Chat Room</h1>
+                <Button style={{ height: "45px" }} onClick={hangUp} id="hangupBtn" variant="contained" color="secondary" className={classes.button} endIcon={<HomeIcon />} >Leave</Button>
+            </div>
             <div id="buttons">
-                <Button style={{height: "45px"}} onClick={e => toggleTrack('audio')} id="toggleAudio" variant="contained" color="primary" className={classes.button} endIcon={audioState? <PhoneDisabledIcon/> :<PhoneEnabledIcon/>}>Turn {audioState ? "Off" : "On"} Audio</Button>
-                <Button style={{height: "45px"}} onClick={e => toggleTrack('video')} id="toggleVideo" variant="contained" color="primary" className={classes.button} endIcon={videoState? <VideocamOffIcon/> :<VideocamIcon/>}>Turn {videoState ? "Off" : "On"} Video</Button>
-                <Button style={{height: "45px"}} onClick={hangUp} id="hangupBtn" variant="contained" color="secondary" className={classes.button} endIcon={<HomeIcon/>} >Leave</Button>
+                <Button style={{ height: "45px" }} onClick={e => toggleTrack('audio')} id="toggleAudio" variant="contained" color="primary" className={classes.button} endIcon={audioState ? <PhoneDisabledIcon /> : <PhoneEnabledIcon />}>Turn {audioState ? "Off" : "On"} Audio</Button>
+                <Button style={{ height: "45px" }} onClick={e => toggleTrack('video')} id="toggleVideo" variant="contained" color="primary" className={classes.button} endIcon={videoState ? <VideocamOffIcon /> : <VideocamIcon />}>Turn {videoState ? "Off" : "On"} Video</Button>
+
+                <div id="videos">
+                    <video id="remoteVideo" autoPlay playsInline ref={remoteVideoRef}></video>
+                    <video id="localVideo" muted autoPlay playsInline ref={localVideoRef}></video>
+                </div>
             </div>
             <div className="chatSet">
                 <div className="scrollBar" ref={messagesEndRef}>
@@ -442,98 +460,121 @@ const Chat = (props) => {
                             {item.sender === context.name ?
 
                                 <div className="balloon_r">
-                                    <div className="faceicon" style={{display: "block"}}>
-                                        <div style={{zoom: '130%'}} className={'x'+ (item.avatar[0]).toString()}>
-                                            <img  src={process.env.PUBLIC_URL + '/color_atlas.gif'} />
+                                    <div className="faceicon" style={{ display: "block" }}>
+                                        <div style={{ zoom: '140%' }} className={'x' + (context.avatar[0]).toString()}>
+                                            <img src={process.env.PUBLIC_URL + '/color_atlas.gif'} />
                                         </div>
-                                        {/* <img style={{zoom: '120%'}} className={'x'+ (context.avatar[0]).toString()} src= {process.env.PUBLIC_URL + '/color_atlas.gif'}/>
-                                        <img style={{zoom: '120%'}} className={'y'+ (context.avatar[1]).toString()} src= {process.env.PUBLIC_URL + '/eyes_atlas.gif'}/>
-                                        <img style={{zoom: '120%'}} className={'z'+ (context.avatar[2]).toString()} src= {process.env.PUBLIC_URL + '/mouth_atlas.gif'}/>                    */}
-                                        <p style={{maxWidth:'70px', wordWrap: 'break-word', marginTop: "0px", fontSize:'12px', marginLeft:'-5px'}}>{item.sender} (me)</p>
-                                
-                                  </div>
+                                        <div style={{ zoom: '140%' }} className={'y' + (context.avatar[1]).toString()}>
+                                            <img src={process.env.PUBLIC_URL + '/eyes_atlas.gif'} />
+                                        </div>
+                                        <div style={{ zoom: '90%' }} className={'z' + (context.avatar[2]).toString()}>
+                                            <img src={process.env.PUBLIC_URL + '/mouth_atlas.gif'} />
+                                        </div>
+                                        <p style={{ maxWidth: '70px', wordWrap: 'break-word', marginTop: '60px', fontSize: '12px', marginLeft: '-5px' }}>{item.sender} (me)</p>
+
+                                    </div>
                                     <div className="says">
                                         <p>{item.text}</p></div>
                                 </div>
 
                                 :
 
-                                <div className="balloon_l">
-                                    <div className="faceicon" style={{display: "block", marginRight: '5px'}}>
-                                    <div style={{zoom: '130%'}} className={'x'+ (item.avatar[0]).toString()}>
-                                            <img  src={process.env.PUBLIC_URL + '/color_atlas.gif'} />
+                                item.avatar
+                                    ?
+                                    <div className="balloon_l">
+                                        <div className="faceicon" style={{ display: "block", marginRight: '5px' }}>
+                                            <div style={{ zoom: '140%' }} className={'x' + (item.avatar[0]).toString()}>
+                                                <img src={process.env.PUBLIC_URL + '/color_atlas.gif'} />
+                                            </div>
+                                            <div style={{ zoom: '140%' }} className={'y' + (item.avatar[1]).toString()}>
+                                                <img src={process.env.PUBLIC_URL + '/eyes_atlas.gif'} />
+                                            </div>
+                                            <div style={{ zoom: '90%' }} className={'z' + (item.avatar[2]).toString()}>
+                                                <img src={process.env.PUBLIC_URL + '/mouth_atlas.gif'} />
+                                            </div>
+                                            <p style={{ maxWidth: '70px', wordWrap: 'break-word', marginTop: "60px", fontSize: '12px' }}>{item.sender}</p>
                                         </div>
-                                        <p style={{maxWidth:'70px', wordWrap: 'break-word', marginTop: "0px", fontSize:'12px', marginLeft:'5px'}}>{item.sender}</p>
-                                        </div>
-                                        <div className="says"> 
-                                    <p>{item.text}</p></div>
+                                        <div className="says">
+                                            <p>{item.text}</p></div>
                                     </div>
+                                    :
+                                    <div>
+                                        <p>{item.text}</p>
+                                    </div>
+
                             }
                         </div>
                     ))
                     }
+
+
                 </div>
                 <div className="messageForm">
 
-                <form className="messageOnSubmit" onSubmit={sendChatMessage}> 
-                    <input style={{ height: "40px", width: "150px", fontSize: "20px", marginTop: '12px', marginLeft: '10px' }} type="text" onChange={e => setChatText(e.target.value)} value={chatText} />
-                    <Button style={{ width: '9px', height: "45px", marginTop: '3px', marginLeft: '15px'  }} type="submit" variant="contained" color="primary" className={classes.button}><SendIcon/></Button>
-                </form> 
-                    <Button style={{display: "inline-block"}} onClick={startWebkitSpeech} disabled={speechState} style={{ width: '9px', height: "45px", marginTop: '3px'}} type="submit" variant="contained" color="primary" className={classes.button}><MicIcon/></Button>
+                    <form className="messageOnSubmit" onSubmit={sendChatMessage}>
+                        <input style={{ height: "40px", width: "150px", fontSize: "20px", marginTop: '12px', marginLeft: '10px' }} type="text" onChange={e => setChatText(e.target.value)} value={chatText} />
+                        <Button style={{ width: '9px', height: "45px", marginTop: '3px', marginLeft: '15px' }} type="submit" variant="contained" color="primary" className={classes.button}><SendIcon /></Button>
+                    </form>
+                    <Button style={{ display: "inline-block" }} onClick={startWebkitSpeech} disabled={speechState} style={{ width: '9px', height: "45px", marginTop: '3px' }} type="submit" variant="contained" color="primary" className={classes.button}><MicIcon /></Button>
                 </div>
-            </div>
-                
-        
-            <div id="videos">
-                <video id="localVideo" muted autoPlay playsInline ref={localVideoRef}></video>
-                <video id="remoteVideo" autoPlay playsInline ref={remoteVideoRef}></video>
+
+
+
+<div className="translationButtons">
+                <div>
+                    {/* <label><LanguageIcon />Speaking in </label> */}
+                    <label>Speaking in </label>
+                    <FormControl variant="outlined">
+
+                    <Select style={{width: "119px", height: "45px"}} value={spokenLang} onChange={e=> setSpokenLang(e.target.value) } labelId="demo-simple-select-outlined-label">
+                        <MenuItem value="en-US" default>English</MenuItem>
+                        <MenuItem value="ko-KR">한국</MenuItem>
+                        <MenuItem value="zh-CN">中文</MenuItem>
+                        <MenuItem value="ja-JP">日本語</MenuItem>
+                        <MenuItem value="es-ES">español</MenuItem>
+                        <MenuItem value="fr-FR">français</MenuItem>
+                        <MenuItem value="pt-PT">português</MenuItem>
+                        <MenuItem value="ru-RU">русский</MenuItem>
+                    </Select>
+                    </FormControl>
+                </div>
+                <div>
+                    {/* <label><LanguageIcon />Translate to </label> */}
+                    <label>Translate to </label>
+                    <FormControl variant="outlined">
+                    <Select style={{width: "119px", height: "45px"}} value={translatedLang} onChange={e=> setTranslatedLang(e.target.value)} labelId="demo-simple-select-outlined-label">
+                        <MenuItem value="en">English</MenuItem>
+                        <MenuItem value="ko">한국</MenuItem>
+                        <MenuItem value="zh-Hant">中文</MenuItem>
+                        <MenuItem value="ja">日本語</MenuItem>
+                        <MenuItem value="es">español</MenuItem>
+                        <MenuItem value="fr">français</MenuItem>
+                        <MenuItem value="pt">português</MenuItem>
+                        <MenuItem value="ru">русский</MenuItem>
+                    </Select>
+                    </FormControl>
+                </div>
+                <div>
+                    <form onSubmit={e => {
+                        e.preventDefault()
+                        setTranslationState(true)
+                        context.speechConfig.speechRecognitionLanguage = spokenLang
+                        context.speechConfig.addTargetLanguage(translatedLang)
+                        let recognizer = new SpeechSDK.TranslationRecognizer(context.speechConfig, context.audioConfig)
+                        recognizer.recognizeOnceAsync(onTranslationDone)
+                    }}>
+                        <Button
+                        style={{ height: "45px" , marginTop: "18px", marginLeft: "6px", marginRight: "0px"}}
+                        disabled={translationState} type="submit" variant="contained" color="secondary" className={classes.button} endIcon={<TranslateIcon />}>Speak</Button>
+                    </form>
+                </div>
+</div>
             </div>
 
-            <div>
-                <label><LanguageIcon/> Spoken Language</label>
-                <select ref={spokenLangRef}>
-                    <option value="en-US">English</option>
-                    <option value="ko-KR">한국</option>
-                    <option value="zh-CN">中文</option>
-                    <option value="ja-JP">日本語</option>
-                    <option value="es-ES">español</option>
-                    <option value="fr-FR">français</option>
-                    <option value="pt-PT">português</option>
-                    <option value="ru-RU">русский</option>
-                </select>
-            </div>
-            <div>
-                <label><LanguageIcon/> Translated Language</label>
-                <select ref={translatedLangRef}>
-                    <option value="en">English</option>
-                    <option value="ko">한국</option>
-                    <option value="zh-Hant">中文</option>
-                    <option value="ja">日本語</option>
-                    <option value="es">español</option>
-                    <option value="fr">français</option>
-                    <option value="pt">português</option>
-                    <option value="ru">русский</option>
-                </select>
-            </div>
-            <div className="translationSet">
-            <form onSubmit={e => {
-                e.preventDefault()
-                setTranslationState(true)
-                context.speechConfig.speechRecognitionLanguage = spokenLangRef.current.value
-                context.speechConfig.addTargetLanguage(translatedLangRef.current.value)
-                let recognizer = new SpeechSDK.TranslationRecognizer(context.speechConfig, context.audioConfig)
-                recognizer.recognizeOnceAsync(onTranslationDone)
-            }}>
-                <Button style={{height: "45px"}} disabled={translationState} type="submit" variant="contained" color="secondary" className={classes.button} startIcon={<TranslateIcon/>} endIcon={<Icon>send</Icon>}>Translate & Send</Button>
-                <div style={{ border: "1px solid black", width: '50%', margin: "auto", minHeight: "20vh" }}>
-                    <h2>{translatedText}</h2>
-                </div>
-            </form>
-            </div>
-     
 
-            
+
         </div >
+        </div>
 
     );
 }

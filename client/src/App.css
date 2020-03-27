@@ -40,16 +40,16 @@
 .arrowLeft1{
   position: absolute;
   clip: rect(0px,17px,17px,0px);
-  margin-left: -47px;
-  margin-top:58px;
+  margin-left: -52px;
+  margin-top:37px;
   z-index: 100;
   zoom: 1.8;
 }
 .arrowLeft2{
   position: absolute;
   clip: rect(0px,34px,17px,18px);
-  margin-left: -64px;
-  margin-top:58px;
+  margin-left: -69px;
+  margin-top:37px;
   z-index: 100;
   zoom: 1.8;
 }
@@ -57,7 +57,7 @@
   position:absolute;
   clip: rect(17px,17px,34px,0px);
   margin-left: 35px;
-  margin-top:40px;
+  margin-top:20px;
   z-index: 100;
   zoom: 1.8;
 }
@@ -65,23 +65,23 @@
   position:absolute;
   clip: rect(17px,34px,34px,18px);
   margin-left: 18px;
-  margin-top:40px;
+  margin-top:20px;
   z-index: 100;
   zoom: 1.8;
 }
 .arrowLeftY1{
   position: absolute;
   clip: rect(0px,17px,17px,0px);
-  margin-left: -47px;
-  margin-top:25px;
+  margin-left: -52px;
+  margin-top:1px;
   z-index: 100;
   zoom: 1.8;
 }
 .arrowLeftY2{
   position: absolute;
   clip: rect(0px,34px,17px,18px);
-  margin-left: -64px;
-  margin-top:25px;
+  margin-left: -69px;
+  margin-top:1px;
   z-index: 100;
   zoom: 1.8;
 }
@@ -89,7 +89,7 @@
   position:absolute;
   clip: rect(17px,17px,34px,0px);
   margin-left: 35px;
-  margin-top:7px;
+  margin-top:-17px;
   z-index: 100;
   zoom: 1.8;
 }
@@ -97,23 +97,23 @@
   position:absolute;
   clip: rect(17px,34px,34px,18px);
   margin-left: 18px;
-  margin-top:7px;
+  margin-top:-17px;
   z-index: 100;
   zoom: 1.8;
 }
 .arrowLeftZ1{
   position: absolute;
   clip: rect(0px,17px,17px,0px);
-  margin-left: -47px;
-  margin-top:42.5px;
+  margin-left: -52px;
+  margin-top:19px;
   z-index: 100;
   zoom: 1.8;
 }
 .arrowLeftZ2{
   position: absolute;
   clip: rect(0px,34px,17px,18px);
-  margin-left: -64px;
-  margin-top:42.5px;
+  margin-left: -69px;
+  margin-top:19px;
   z-index: 100;
   zoom: 1.8;
 }
@@ -121,7 +121,7 @@
   position:absolute;
   clip: rect(17px,17px,34px,0px);
   margin-left: 35px;
-  margin-top:23.5px;
+  margin-top:2px;
   z-index: 100;
   zoom: 1.8;
 }
@@ -129,28 +129,14 @@
   position:absolute;
   clip: rect(17px,34px,34px,18px);
   margin-left: 18px;
-  margin-top:23.5px;
+  margin-top:2px;
   z-index: 100;
   zoom: 1.8;
 }
 
-.crop {
-  width: 17px;
-  height: 17px;
-  overflow: hidden;
-  zoom: 150%;
-  position: relative;
-}
-
-.crop img {
-  width: 33px;
-  height: 33px;
-  margin: -17px 0 0 -9px;
-  position: absolute;
-}
 
 .x1{
-  position: relative;
+  position: absolute;
   width: 48px;
   height: 48px;
   overflow: hidden;
@@ -159,10 +145,11 @@
 .x1 img {
   width: 480px;
   height: 480px;
-  margin: 0.7px 0px 0px -1px;
+  margin: 0.7px 0px 0px -25px;
+  position:absolute;
 }
 .x2{
-  position: relative;
+  position: absolute;
   width: 48px;
   height: 48px;
   overflow: hidden;
@@ -171,10 +158,11 @@
 .x2 img{
   width: 480px;
   height: 480px;
-  margin: 0.7px 0px 0px -48.5px;
+  margin: 0.7px 0px 0px -72.5px;
+  position:absolute;
 }
 .x3{
-  position: relative;
+  position: absolute;
   width: 48px;
   height: 48px;
   overflow: hidden;
@@ -183,10 +171,11 @@
 .x3 img{
   width: 480px;
   height: 480px;
-  margin: 0.7px 0px 0px -96px;
+  margin: 0.7px 0px 0px -120px;
+  position:absolute;
 }
 .x4{
-  position: relative;
+  position: absolute;
   width: 48px;
   height: 48px;
   overflow: hidden;
@@ -195,10 +184,11 @@
 .x4 img{
   width: 480px;
   height: 480px;
-  margin:0px 0px 0px -145.5px;
+  margin:0px 0px 0px -169.5px;
+  position:absolute;
 }
 .x5{
-  position: relative;
+  position: absolute;
   width: 46px;
   height: 48px;
   overflow: hidden;
@@ -207,22 +197,25 @@
 .x5 img{
   width: 480px;
   height: 480px;
-  margin: 0px 0px 0px -195.5px;
+  margin: 0px 0px 0px -218.7px;
+  position:absolute;
 }
 .x6{
-  position: relative;
+  position: absolute;
   width: 46px;
   height: 48px;
   overflow: hidden;
   zoom: 1.8;
+  
 }
 .x6 img{
   width: 480px;
   height: 480px;
-  margin: 0.7px 0px 0px -241px;
+  margin: 0.7px 0px 0px -264px;
+  position:absolute;
 }
 .x7{
-  position: relative;
+  position: absolute;
   width: 48px;
   height: 48px;
   overflow: hidden;
@@ -231,10 +224,11 @@
 .x7 img{
   width: 480px;
   height: 480px;
-  margin: 0px 0px 0px -288.5px;
+  margin: 0.5px 0px 0px -312.5px;
+  position:absolute;
 }
 .x8{
-  position: relative;
+  position: absolute;
   width: 48px;
   height: 48px;
   overflow: hidden;
@@ -243,10 +237,11 @@
 .x8 img{
   width: 480px;
   height: 480px;
-  margin: 0.7px 0px 0px -337px;
+  margin: 0.7px 0px 0px -361px;
+  position:absolute;
 }
 .x9{
-  position: relative;
+  position: absolute;
   width: 48px;
   height: 48px;
   overflow: hidden;
@@ -255,10 +250,11 @@
 .x9 img{
   width: 480px;
   height: 480px;
-  margin: 0px 0px 0px -385px;
+  margin: 0.1px 0px 0px -409px;
+  position:absolute;
 }
 .x10{
-  position: relative;
+  position: absolute;
   width: 48px;
   height: 48px;
   overflow: hidden;
@@ -267,10 +263,11 @@
 .x10 img{
   width: 480px;
   height: 480px;
-  margin: 0.5px 0px 0px -434px;
+  margin: 0.5px 0px 0px -457px;
+  position:absolute;
 }
 .x11{
-  position: relative;
+  position: absolute;
   width: 48px;
   height: 48px;
   overflow: hidden;
@@ -280,10 +277,11 @@
 .x11 img {
   width: 480px;
   height: 480px;
-  margin: -49.3px 0px 0px -1.3px;
+  margin: -49.3px 0px 0px -25px;
+  position:absolute;
 }
 .x12{
-  position: relative;
+  position: absolute;
   width: 48px;
   height: 48px;
   overflow: hidden;
@@ -293,10 +291,11 @@
 .x12 img{
   width: 480px;
   height: 480px;
-  margin: -49.3px 0px 0px -49.15px;
+  margin: -49.3px 0px 0px -73px;
+  position:absolute;
 }
 .x13{
-  position: relative;
+  position: absolute;
   width: 48px;
   height: 48px;
   overflow: hidden;
@@ -306,10 +305,11 @@
 .x13 img{
   width: 480px;
   height: 480px;
-  margin: -49.4px 0px 0px -95.9px;
+  margin: -49.4px 0px 0px  -120px;
+  position:absolute;
 }
 .x14{
-  position: relative;
+  position: absolute;
   width: 48px;
   height: 48px;
   overflow: hidden;
@@ -319,10 +319,11 @@
 .x14 img{
   width: 480px;
   height: 480px;
-  margin: -50.5px 0px 0px -145.5px;
+  margin: -50.5px 0px 0px -169.5px;
+  position:absolute;
 }
 .x15{
-  position: relative;
+  position: absolute;
   width: 48px;
   height: 48px;
   overflow: hidden;
@@ -332,10 +333,11 @@
 .x15 img{
   width: 480px;
   height: 480px;
-  margin: -50.5px 0px 0px -196px;
+  margin: -50.5px 0px 0px -220px;
+  position:absolute;
 }
 .x16{
-  position: relative;
+  position: absolute;
   width: 48px;
   height: 48px;
   overflow: hidden;
@@ -346,10 +348,11 @@
 .x16 img{
   width: 480px;
   height: 480px;
-  margin: -50.5px 0px 0px -241.5px;
+  margin: -50.5px 0px 0px -265.5px;
+  position:absolute;
 }
 .x17{
-  position: relative;
+  position: absolute;
   width: 48px;
   height: 48px;
   overflow: hidden;
@@ -359,482 +362,746 @@
 .x17 img{
   width: 480px;
   height: 480px;
-  margin: -51px 0px 0px -289px;
-  
+  margin: -51px 0px 0px -313px;
+  position:absolute;
 }
 .y1{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,48px,48px,0px);
-  margin-top: 10px; 
-  margin-left: -24.5px;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  margin-left: -3px;
+}
+.y1 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 1px 0px 0px -24px;
+  
 }
 .y2{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,96px,48px,49px);
-  margin:auto;
-  margin-top: 10px; 
-  margin-left: -72.5px; 
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  margin-left: -2.5px;
+  margin-top: -9px;
+}
+.y2 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 11px 0px 0px -72px;
+  
 }
 .y3{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,144px,48px,97px);
-  margin-top: 10px; 
-  margin-left: -120px; 
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  margin-top:1px;
+}
+.y3 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 1px 0px 0px -122px;
+  
 }
 .y4{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,193px,48px,147px);
-  margin-top: 10px; 
-  margin-left: -168.5px; 
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  /* margin-left: -3px; */
+}
+.y4 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 4px 0px 0px -172px;
+  
 }
 .y5{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,240px,48px,194px);
-  margin-top: 10px; 
-  margin-left: -215.5px; 
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  /* margin-left: -3px; */
+}
+.y5 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 2px 0px 0px -219px;
+  
 }
 .y6{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,288px,48px,242px);
-  margin-top: 10px; 
-  margin-left: -264.5px; 
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  /* margin-left: -3px; */
+}
+.y6 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 3px 0px 0px -266px;
+  
 }
 .y7{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,337px,48px,291px);
-  margin-top: 10px; 
-  margin-left: -311.5px; 
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  /* margin-left: -3px; */
+}
+.y7 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 5px 0px 0px -314px;
+  
 }
 .y8{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,384px,48px,341px);
-  margin-top: 10px; 
-  margin-left: -356px; 
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  /* margin-left: -3px; */
+}
+.y8 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 4px 0px 0px -365px;
+  
 }
 .y9{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,433px,48px,389px);
-  margin-top: 10px; 
-  margin-left: -404px; 
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  /* margin-left: -3px; */
+}
+.y9 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 5px 0px 0px -412px;
+  
 }
 .y10{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,480px,48px,434px);
-  margin-top: 10px; 
-  margin-left: -452px; 
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  /* margin-left: -3px; */
+}
+.y10 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 3px 0px 0px -458px;
+  
 }
 .y11{
-  z-index: 99;
   position: absolute;
-  clip: rect(49px,48px,97px,0px);
-  margin-top: -23px;  
-  margin-left: -20px;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  margin-left: -5px;
+}
+.y11 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: -45px 0px 0px -23px;
+  
 }
 .y12{
-  z-index: 99;
   position: absolute;
-  clip: rect(49px,96px,97px,49px);
-  margin:auto;
-  margin-top: -23px; 
-  margin-left: -68px; 
-  zoom: 1.8;
+  width: 50px;
+  height: 48px;
+  overflow: hidden;
+  zoom:1.3;
+  z-index:2;
+  margin-top: -5px;
+  margin-left: 4px;
+}
+.y12 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: -39px 0px 0px -72px;
+  
 }
 .y13{
-  z-index: 99;
   position: absolute;
-  clip: rect(49px,144px,97px,97px);
-  margin-top: -23px; 
-  margin-left: -116px; 
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  /* margin-left: -3px; */
+}
+.y13 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: -45px 0px 0px -122px;
+  
 }
 .y14{
-  z-index: 99;
   position: absolute;
-  clip: rect(49px,193px,97px,147px);
-  margin-top: -23px; 
-  margin-left: -164px; 
+  width: 57px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  margin-left: -6px;
+}
+.y14 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: -45px 0px 0px -172px;
+  
 }
 .y15{
-  z-index: 99;
   position: absolute;
-  clip: rect(49px,240px,97px,194px);
-  margin-top: -23px; 
-  margin-left: -212px; 
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  /* margin-left: -3px; */
+}
+.y15 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: -45px 0px 0px -222px;
+  
 }
 .y16{
-  z-index: 99;
   position: absolute;
-  clip: rect(49px,288px,97px,242px);
-  margin-top: -23px; 
-  margin-left: -260px; 
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  /* margin-left: -3px; */
+}
+.y16 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: -50px 0px 0px -267px;
+  
 }
 .y17{
-  z-index: 99;
   position: absolute;
-  clip: rect(49px,337px,97px,291px);
-  margin-top: -23px; 
-  margin-left: -308px; 
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  /* margin-left: -3px; */
+}
+.y17 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: -45px 0px 0px -315.5px;
+  
 }
 .y18{
-  z-index: 99;
   position: absolute;
-  clip: rect(49px,384px,97px,341px);
-  margin-top: -23px;  
-  margin-left: -356px; 
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  /* margin-left: -3px; */
+}
+.y18 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: -45px 0px 0px -366px;
+  
 }
 .y19{
-  z-index: 99;
   position: absolute;
-  clip: rect(49px,433px,97px,389px);
-  margin-top: -23px; 
-  margin-left: -404px; 
-  zoom: 1.8;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.86 ;
+  z-index:2;
+  /* margin-left: -3px; */
+}
+.y19 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: -45px 0px 0px -412px;
+  
 }
 .y20{
-  z-index: 99;
   position: absolute;
-  clip: rect(49px,480px,97px,434px);
-  margin-top: -23px; 
-  margin-left: -452px; 
-  zoom: 1.8;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.9;
+  z-index:2;
+  /* margin-left: -3px; */
+}
+.y20 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: -48px 0px 0px -458px;
+  
 }
 .y21{
-  z-index: 99;
   position: absolute;
-  clip: rect(98px,48px,146px,0px);
-  margin-top: -71px;  
-  margin-left: -20px;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  /* margin-left: -3px; */
+}
+.y21 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: -90px 0px 0px -27px;
+  
 }
 .y22{
-  z-index: 99;
   position: absolute;
-  clip: rect(98px,96px,146px,49px);
-  margin:auto;
-  margin-top: -71px; 
-  margin-left: -68px; 
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  margin-top: -3px;
+  margin-left: -1px;
+}
+.y22 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: -93px 0px 0px -74px;
+  
 }
 .y23{
-  z-index: 99;
   position: absolute;
-  clip: rect(98px,144px,146px,97px);
-  margin-top: -71px; 
-  margin-left: -116px; 
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  /* margin-left: -3px; */
+}
+.y23 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: -93px 0px 0px -122px;
+  
 }
 .y24{
-  z-index: 99;
   position: absolute;
-  clip: rect(98px,193px,146px,147px);
-  margin-top: -71px; 
-  margin-left: -164px; 
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
   zoom: 1.8;
+  z-index:2;
+  /* margin-left: -3px; */
 }
-.y25{
-  z-index: 99;
+.y24 img {
+  z-index:2;
   position: absolute;
-  clip: rect(98px,240px,146px,194px);
-  margin-top: -71px; 
-  margin-left: -212px; 
-  zoom: 1.8;
-}
-.y26{
-  z-index: 99;
-  position: absolute;
-  clip: rect(98px,288px,146px,242px);
-  margin-top: -71px; 
-  margin-left: -260px; 
-  zoom: 1.8;
-}
-.y27{
-  z-index: 99;
-  position: absolute;
-  clip: rect(98px,337px,146px,291px);
-  margin-top:-71px; 
-  margin-left: -308px; 
-  zoom: 1.8;
-}
-.y28{
-  z-index: 99;
-  position: absolute;
-  clip: rect(98px,384px,146px,341px);
-  margin-top:-71px; 
-  margin-left: -356px; 
-  zoom: 1.8;
-}
-.y29{
-  z-index: 99;
-  position: absolute;
-  clip: rect(98px,433px,146px,389px);
-  margin-top: -71px; 
-  margin-left: -404px; 
-  zoom: 1.8;
-}
-.y30{
-  z-index: 99;
-  position: absolute;
-  clip: rect(98px,480px,146px,434px);
-  margin-top: -71px;  
-  margin-left: -452px; 
-  zoom: 1.8;
+  width: 480px;
+  height: 480px;
+  margin: -96px 0px 0px -170px;
+  
 }
 
-.y31{
-  z-index: 99;
-  position: absolute;
-  clip: rect(147px,48px,195px,0px);
-  margin-top: -119px;  
-  margin-left: -20px;
-  zoom: 1.8;
-}
 .z1{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,48px,48px,0px);
-  margin-top: 8px; 
-  margin-left: -24.5px;
-  zoom: 1.8;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1;
+  z-index:2;
+  margin-left: 7px;
+  margin-top: 22px;
+}
+.z1 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 0.5px 0px 0px -15px;
+  
 }
 .z2{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,96px,48px,49px);
-  margin:auto;
-  margin-top: 25px; 
-  margin-left: -68px; 
-  zoom: 1.8;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1;
+  z-index:2;
+  margin-left: 15px;
+  margin-top: 15px;
+}
+.z2 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 11px 0px 0px -72px;
+  
 }
 .z3{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,144px,48px,97px);
-  margin-top: 25px; 
-  margin-left: -116px; 
-  zoom: 1.8;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.2;
+  z-index:2;
+  margin-left: 12px;
+  margin-top: 15px;
+}
+.z3 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 1px 0px 0px -122px;
+  
 }
 .z4{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,193px,48px,147px);
-  margin-top: 25px; 
-  margin-left: -164px; 
-  zoom: 1.8;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1;
+  z-index:2;
+  margin-left: 20px;
+  margin-top: 25px;
+  /* margin-left: -3px; */
+}
+.z4 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 4px 0px 0px -172px;
+  
 }
 .z5{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,240px,48px,194px);
-  margin-top: 25px; 
-  margin-left: -212px; 
-  zoom: 1.8;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1;
+  z-index:2;
+  margin-left: 20px;
+  margin-top: 25px;
+  /* margin-left: -3px; */
+}
+.z5 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 2px 0px 0px -219px;
+  
 }
 .z6{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,288px,48px,242px);
-  margin-top: 25px; 
-  margin-left: -260px; 
-  zoom: 1.8;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.2;
+  z-index:2;
+  margin-left: 10px;
+  margin-top: 15px;
+  /* margin-left: -3px; */
+}
+.z6 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 3px 0px 0px -266px;
+  
 }
 .z7{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,337px,48px,291px);
-  margin-top: 25px; 
-  margin-left: -308px; 
-  zoom: 1.8;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1;
+  z-index:2;
+  margin-left: 18px;
+  margin-top: 20px;
+  /* margin-left: -3px; */
+}
+.z7 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 5px 0px 0px -314px;
+  
 }
 .z8{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,384px,48px,341px);
-  margin-top: 25px; 
-  margin-left: -356px; 
-  zoom: 1.8;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1;
+  z-index:2;
+  margin-left: 20px;
+  margin-top: 20px;
+  /* margin-left: -3px; */
+}
+.z8 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 4px 0px 0px -365px;
+  
 }
 .z9{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,433px,48px,389px);
-  margin-top: 25px; 
-  margin-left: -404px; 
-  zoom: 1.8;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1;
+  z-index:2;
+  margin-left: 20px;
+  margin-top: 20px;
+  /* margin-left: -3px; */
+}
+.z9 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 5px 0px 0px -412px;
+  
 }
 .z10{
-  z-index: 99;
   position: absolute;
-  clip: rect(0px,480px,48px,434px);
-  margin-top: 25px; 
-  margin-left: -452px; 
-  zoom: 1.8;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1;
+  z-index:2;
+  margin-left: 20px;
+  margin-top: 24px;
+  /* margin-left: -3px; */
+}
+.z10 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: 3px 0px 0px -458px;
+  
 }
 .z11{
-  z-index: 99;
   position: absolute;
-  clip: rect(49px,48px,100px,0px);
-  margin-top: -23px;  
-  margin-left: -20px;
-  zoom: 1.8;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1;
+  z-index:2;
+ 
+  margin-left: 13px;
+  margin-top: 22px;
+}
+.z11 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: -45px 0px 0px -23px;
+  
 }
 .z12{
-  z-index: 99;
   position: absolute;
-  clip: rect(49px,96px,100px,49px);
-  margin:auto;
-  margin-top: -23px; 
-  margin-left: -68px; 
-  zoom: 1.8;
+  width: 50px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.2;
+  z-index:2;
+  margin-left: 7px;
+  margin-top: 8px;
+}
+.z12 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: -39px 0px 0px -72px;
+  
 }
 .z13{
-  z-index: 99;
   position: absolute;
-  clip: rect(49px,144px,100px,97px);
-  margin-top: -23px; 
-  margin-left: -116px; 
-  zoom: 1.8;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.2;
+  z-index:2;
+  margin-left: 11px;
+  margin-top: 12px;
+  /* margin-left: -3px; */
+}
+.z13 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: -45px 0px 0px -122px;
+  
 }
 .z14{
-  z-index: 99;
   position: absolute;
-  clip: rect(49px,193px,100px,147px);
-  margin-top: -23px; 
-  margin-left: -164px; 
-  zoom: 1.8;
+  width: 57px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.4;
+  z-index:2;
+
+  margin-left: 2.5px;
+  margin-top: 9px;
+}
+.z14 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: -45px 0px 0px -172px;
+  
 }
 .z15{
-  z-index: 99;
   position: absolute;
-  clip: rect(49px,240px,100px,194px);
-  margin-top: -23px; 
-  margin-left: -212px; 
-  zoom: 1.8;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.4;
+  z-index:2;
+
+  margin-left: 7px;
+  margin-top: 9px;
+  /* margin-left: -3px; */
+}
+.z15 img {
+  z-index:2;
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  margin: -45px 0px 0px -220px;
+  
 }
 .z16{
-  z-index: 99;
   position: absolute;
-  clip: rect(49px,288px,100px,242px);
-  margin-top: -23px; 
-  margin-left: -260px; 
-  zoom: 1.8;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  zoom: 1.5;
+  z-index:2;
+  /* margin-left: -3px; */
+
+  margin-left: 4px;
+  margin-top: 10px;
 }
-.z17{
-  z-index: 99;
+.z16 img {
+  z-index:2;
   position: absolute;
-  clip: rect(49px,337px,100px,291px);
-  margin-top: -23px; 
-  margin-left: -308px; 
-  zoom: 1.8;
+  width: 480px;
+  height: 480px;
+  margin: -50px 0px 0px -267px;
+  
 }
-.z18{
-  z-index: 99;
-  position: absolute;
-  clip: rect(49px,384px,100px,341px);
-  margin-top: -23px;  
-  margin-left: -356px; 
-  zoom: 1.8;
-}
-.z19{
-  z-index: 99;
-  position: absolute;
-  clip: rect(49px,433px,100px,389px);
-  margin-top: -23px; 
-  margin-left: -404px; 
-  zoom: 1.8;
-}
-.z20{
-  z-index: 99;
-  position: absolute;
-  clip: rect(49px,480px,100px,434px);
-  margin-top: -23px; 
-  margin-left: -452px; 
-  zoom: 1.8;
-}
-.z21{
-  z-index: 99;
-  position: absolute;
-  clip: rect(101px,48px,149px,0px);
-  margin-top: -71px;  
-  margin-left: -20px;
-  zoom: 1.8;
-}
-.z22{
-  z-index: 99;
-  position: absolute;
-  clip: rect(101px,96px,149px,49px);
-  margin:auto;
-  margin-top: -71px; 
-  margin-left: -68px; 
-  zoom: 1.8;
-}
-.z23{
-  z-index: 99;
-  position: absolute;
-  clip: rect(101px,144px,149px,97px);
-  margin-top: -71px; 
-  margin-left: -116px; 
-  zoom: 1.8;
-}
-.z24{
-  z-index: 99;
-  position: absolute;
-  clip: rect(101px,193px,149px,147px);
-  margin-top: -71px; 
-  margin-left: -164px; 
-  zoom: 1.8;
-}
+
 
 
 #chatRoom{
   
   border-radius: 5px;
-  z-index:100000;
+  z-index:100;
   position: absolute;
-  width:90%;
-  height: 1000px;
-  text-align: center; 
+  min-width: 70%;
+  width: auto;
+  height: 750px;
+  text-align: center;
   background-color: white;
-  margin: 10vh 5%;
+  margin: 1vh 12vw;
   vertical-align: middle;
+
   box-shadow: 0px 3px 3px -2px rgba(0,0,0,0.2), 0px 3px 4px 0px rgba(0,0,0,0.14), 0px 1px 8px 0px rgba(0,0,0,0.12);
 }
-#videos{
-  display: inline-block;
-  width:40vw;
-}
-#localVideo{
-  display: inline-block;
-  width:30vw;
-}
-#remoteVideo{
-  display: inline-block;
-  width:20vw;
+
+.chatHeader {
+  display: flex;
+  justify-content: space-between;
+  padding-left: 30%;
 }
 
 #nameForm{
@@ -857,14 +1124,15 @@
   width: 100%;
   height: 100%;
   z-index: 1; 
+  background-color: rgb(47,133,220);
 }
 
 .scrollBar{
     background-color: lightskyblue;
     border-radius: 5px;
     /* box-shadow: 0px 3px 3px -2px rgba(0,0,0,0.2), 0px 3px 4px 0px rgba(0,0,0,0.14), 0px 1px 8px 0px rgba(0,0,0,0.12); */
-    width: 350px;
-    height: 350px;
+    width: 370px;
+    height: 370px;
     overflow-y:scroll;
     /* margin: 0 5%; */
 }
@@ -874,13 +1142,38 @@
   background-color: lightskyblue;
   border-radius: 5px;
   box-shadow: 0px 3px 3px -2px rgba(0,0,0,0.2), 0px 3px 4px 0px rgba(0,0,0,0.14), 0px 1px 8px 0px rgba(0,0,0,0.12);
-  width: 350px;
+  width: 370px;
   height: 420px;
   display: inline-block;
 }
+#buttons{
+  display: inline-block;
+  vertical-align: top;
+  margin-left: 20px;
+}
+
+.translationButtons {
+  display: flex;
+  justify-content: space-between;
+}
+#videos{
+  /* display: inline-block; */
+}
+#remoteVideo{
+  /* display: inline-block; */
+  height:20vw;
+  width:25vw;
+  display: block;
+}
+#localVideo{
+  /* display: inline-block; */
+  height:20vw;
+  width:25vw;
+  display: block;
+}
 .messageForm{
   display: block;
-  width:350px;
+  width:370px;
   height:70px;
   background-color: darkblue;
   border-radius: 5px;
@@ -889,7 +1182,7 @@
   display: inline-block;
 }
 .userName {
-  z-index: 100;
+  z-index: 2;
   position: absolute;
   font-size: 50px;
   margin-left: 50px;
@@ -910,10 +1203,11 @@
 }
 .namePage{
   color:white;
-  font-size: 40px;
+  font-size: 55px;
   -webkit-text-stroke: 1px #000;
   display: inline-block;
-  margin-left: 20%;
+  margin: 2% auto;
+
 }
 
 /*吹き出し*/
@@ -925,8 +1219,11 @@
   align-items: flex-start; /*縦位置を上揃え*/
 /*   align-items: center; */ /*縦位置を真ん中揃え*/
 }
+.balloon_l{
+  margin-left: 15px;
+}
 .balloon_r{
-
+margin-right:5px;
   justify-content:flex-end;
 }
 .faceicon{

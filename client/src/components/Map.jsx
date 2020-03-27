@@ -108,10 +108,7 @@ const Map = (props) => {
 
     return (
         <div>
-            {/* {context.name?
-            <div >Welcome {context.name}</div>:
-            null} */}
-            <div className="userName">Hello, {context.name}</div>
+            <div className="userName">Hello {context.name}!</div>
             <div className="countryName">{highlightedCountry}</div>
             <div className="container" id="map"></div>
         </div>
