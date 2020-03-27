@@ -1089,7 +1089,8 @@
   position: absolute;
   min-width: 70%;
   width: auto;
-  height: 750px;
+  height: auto;
+  padding-bottom: 50px;
   text-align: center;
   background-color: white;
   margin: 1vh 12vw;

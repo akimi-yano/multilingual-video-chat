@@ -120,8 +120,8 @@ const Chat = (props) => {
                 }
                 chatLog = [...chatLog, speechObj]
                 setChatLogState(chatLog)
-                setSpeechState(false)
             }
+            context.webkitSpeech.onend = e => {setSpeechState(false)}
         }
     }, [context.webkitSpeech, chatLogState]) // TODO debug why listening on setChatLogState doesn't work
 
@@ -377,6 +377,9 @@ const Chat = (props) => {
     // event handler for chat sending
     const sendChatMessage = e => {
         e.preventDefault();
+        if (!chatText) {
+            return;
+        }
         let chatObj = { sender: context.name, text: chatText, avatar: context.avatar }
         if (channel && channel.readyState == 'open') {
             channel.send(JSON.stringify(chatObj))
@@ -517,7 +520,7 @@ const Chat = (props) => {
 
                     <form className="messageOnSubmit" onSubmit={sendChatMessage}>
                         <input style={{ height: "40px", width: "150px", fontSize: "20px", marginTop: '12px', marginLeft: '10px' }} type="text" onChange={e => setChatText(e.target.value)} value={chatText} />
-                        <Button style={{ width: '9px', height: "45px", marginTop: '3px', marginLeft: '15px' }} type="submit" variant="contained" color="primary" className={classes.button}><SendIcon /></Button>
+                        <Button disabled={!chatText} style={{ width: '9px', height: "45px", marginTop: '3px', marginLeft: '15px' }} type="submit" variant="contained" color="primary" className={classes.button}><SendIcon /></Button>
                     </form>
                     <Button style={{ display: "inline-block" }} onClick={startWebkitSpeech} disabled={speechState} style={{ width: '9px', height: "45px", marginTop: '3px' }} type="submit" variant="contained" color="primary" className={classes.button}><MicIcon /></Button>
                 </div>
