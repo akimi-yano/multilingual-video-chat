@@ -4,13 +4,11 @@ import {Router} from '@reach/router'
 import NameForm from './components/NameForm'
 import Chat from './components/Chat'
 import Contexts from './context/Contexts';
-// import Rooms from './components/Rooms';
 import Map from './components/Map'
 import EnterChat from './components/EnterChat'
 import LeaveChat from './components/LeaveChat'
 
 import 'mapbox.js/dist/mapbox.css'
-
 
 
 function App() {

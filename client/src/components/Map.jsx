@@ -106,7 +106,6 @@ const Map = (props) => {
     }
 
     const returnHandler = e =>{
-        console.log('returning')
         navigate('/')
         }
     return (
