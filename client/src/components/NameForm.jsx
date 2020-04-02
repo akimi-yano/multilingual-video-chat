@@ -1,4 +1,4 @@
-import React,{useState, useContext} from 'react'
+import React,{useEffect, useState, useContext} from 'react'
 import {navigate} from '@reach/router'
 
 import Context from '../context/Context'
@@ -34,11 +34,23 @@ const NameForm = () => {
     // for information
     const [accessState, setAccessState]=useState(0)
 
+    useEffect(() => {
+      if (context.name != 'anonymous') {
+        setFormState(context.name)
+      }
+      setNumState(context.avatar[0])
+      setNumEyeState(context.avatar[1])
+      setNumMouthState(context.avatar[2])
+    }, [context.name, context.avatar])
+
     const onChangeHandler=e=>{
         setFormState(e.target.value)
     }
     const onSubmitHandler=e=>{
         e.preventDefault();
+        if (!formState) {
+          return;
+      }
         let avatar = [numState, numEyeState, numMouthState]
         context.setupNameAvatar(formState, avatar)
         navigate('/chat')
@@ -182,7 +194,7 @@ const NameForm = () => {
         <form onSubmit={onSubmitHandler}>
 
                 <input placeholder="Your Name" style={{height:'40px', width:'160px', margin: '25px 25px 25px -5px', padding: '5px', fontSize:'15px', fontFamily: "'Chelsea Market', cursive", outline:'none'}} onChange={onChangeHandler} type="text" value={formState} />
-                <Button style={{height:'50px'}} type="submit" variant="contained" color="primary" endIcon={<LocalAirportIcon/>}>Start</Button>
+                <Button disabled={!formState} style={{height:'50px'}} type="submit" variant="contained" color="primary" endIcon={<LocalAirportIcon/>}>Start</Button>
             </form>
           
           </Paper>

@@ -72,6 +72,7 @@ const Contexts = (props) => {
         } else {
             document.cookie = `name=${nameToUse}; path=/`
         }
+        console.log('nameToUse: ', nameToUse)
         setName(nameToUse)
 
         // avatar setup

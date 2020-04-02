@@ -539,13 +539,13 @@ const Chat = (props) => {
 
                     <Select style={{width: "119px", height: "45px", fontFamily: "'Chelsea Market', cursive", marginLeft: "-11.5px"}} value={spokenLang} onChange={e=> setSpokenLang(e.target.value) } labelId="demo-simple-select-outlined-label">
                         <MenuItem value="en-US" default>English</MenuItem>
-                        <MenuItem value="ko-KR">한국</MenuItem>
-                        <MenuItem value="zh-CN">中文</MenuItem>
-                        <MenuItem value="ja-JP">日本語</MenuItem>
-                        <MenuItem value="es-ES">español</MenuItem>
-                        <MenuItem value="fr-FR">français</MenuItem>
-                        <MenuItem value="pt-PT">português</MenuItem>
-                        <MenuItem value="ru-RU">русский</MenuItem>
+                        <MenuItem value="ko-KR">Korean</MenuItem>
+                        <MenuItem value="zh-CN">Chinese</MenuItem>
+                        <MenuItem value="ja-JP">Japanese</MenuItem>
+                        <MenuItem value="es-ES">Spanish</MenuItem>
+                        <MenuItem value="fr-FR">French</MenuItem>
+                        <MenuItem value="pt-PT">Portugese</MenuItem>
+                        <MenuItem value="ru-RU">Russian</MenuItem>
                     </Select>
                     </FormControl>
                 </div>
@@ -555,13 +555,13 @@ const Chat = (props) => {
                     <FormControl variant="outlined">
                     <Select style={{width: "119px", height: "45px", fontFamily: "'Chelsea Market', cursive", marginLeft: "6px"}} value={translatedLang} onChange={e=> setTranslatedLang(e.target.value)} labelId="demo-simple-select-outlined-label">
                         <MenuItem value="en">English</MenuItem>
-                        <MenuItem value="ko">한국</MenuItem>
-                        <MenuItem value="zh-Hant">中文</MenuItem>
-                        <MenuItem value="ja">日本語</MenuItem>
-                        <MenuItem value="es">español</MenuItem>
-                        <MenuItem value="fr">français</MenuItem>
-                        <MenuItem value="pt">português</MenuItem>
-                        <MenuItem value="ru">русский</MenuItem>
+                        <MenuItem value="ko">Korean</MenuItem>
+                        <MenuItem value="zh-Hant">Chinese</MenuItem>
+                        <MenuItem value="ja">Japanese</MenuItem>
+                        <MenuItem value="es">Spanish</MenuItem>
+                        <MenuItem value="fr">French</MenuItem>
+                        <MenuItem value="pt">Portugese</MenuItem>
+                        <MenuItem value="ru">Russian</MenuItem>
                     </Select>
                     </FormControl>
                 </div>

@@ -105,25 +105,32 @@ const Map = (props) => {
         navigate(`/enter/${clickEvent.target.feature.properties.name}`)
     }
 
-    
+    const returnHandler = e =>{
+        console.log('returning')
+        navigate('/')
+        }
     return (
         <div>
             <div className="userName">{context.name}</div>
             <div className="countryName">{highlightedCountry}</div>
             <div className="container" id="map"></div>
-            <div style={{zIndex: '2', position: "fixed", bottom: '50px', left:'50px', position: 'absolute', border:"1px solid transparent", margin: "auto", width: '80px', height:'80px', borderRadius:"50%"}}>
-                                            <div style={{ zoom: '270%' }} className={'x' + (context.avatar[0]).toString()}>
-                                                <img src={process.env.PUBLIC_URL + '/color_atlas.gif'} />
-                                            </div>
-                                            <div style={{ zoom: '270%' }} className={'y' + (context.avatar[1]).toString()}>
-                                                <img src={process.env.PUBLIC_URL + '/eyes_atlas.gif'} />
-                                            </div>
-                                            <div style={{ zoom: '150%' }} className={'z' + (context.avatar[2]).toString()}>
-                                                <img src={process.env.PUBLIC_URL + '/mouth_atlas.gif'} />
-                                            </div>
-                                            
+            <div style={{ zIndex: '2', position: "fixed", bottom: '50px', left: '50px', position: 'absolute', border: "1px solid transparent", margin: "auto", width: '80px', height: '80px', borderRadius: "50%" }}>
+                <div style={{ zoom: '270%' }} className={'x' + (context.avatar[0]).toString()}>
+                    <img src={process.env.PUBLIC_URL + '/color_atlas.gif'} />
+                </div>
+                <div style={{ zoom: '270%' }} className={'y' + (context.avatar[1]).toString()}>
+                    <img src={process.env.PUBLIC_URL + '/eyes_atlas.gif'} />
+                </div>
+                <div style={{ zoom: '150%' }} className={'z' + (context.avatar[2]).toString()}>
+                    <img src={process.env.PUBLIC_URL + '/mouth_atlas.gif'} />
+            </div>
+            <div onClick={e=>returnHandler()} style={{zIndex: '2', position: "fixed", bottom: '-70%', left: '200%',position: 'absolute' }}>
+            <img style={{width: '150px'}} src={process.env.PUBLIC_URL + '/speechBubble.png'} />
+            <p style={{position: 'absolute', bottom: '36%', margin: '10px',  maxWidth: '180px', fontFamily: "'Chelsea Market', cursive", }}>Click this to change name and avatar</p>
+            </div>
 
-                                            </div>
+
+            </div>
         </div>
     )
 }
