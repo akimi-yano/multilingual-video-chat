@@ -1,5 +1,6 @@
 # ice candi - Multilingual Video Chat
 ## Deployed: https://fir-rtc-bf5c0.web.app/
+## Demo video: https://www.youtube.com/watch?v=QaJl8ayN62E
 
 A multilingual peer-to-peer video chat application with live speech-to-text translation.
 
