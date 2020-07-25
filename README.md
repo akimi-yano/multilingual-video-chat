@@ -43,6 +43,9 @@ I learned how to use Adobe Photoshop and Illustrator to create the avatars from 
 
 I started this project in March during my time at bootcamp, right as the world went into lockdown. My classmates and I stayed connected through activities such as [skribbl.io][skribbl]. I wanted to make my website just as fun and personalizable as well, and decided to make these avatars.
 
+## Thanks!
+Please check out my other projects at my [Portfolio Website][portfolio]!
+
 [perfect-blog]: https://blog.mozilla.org/webrtc/perfect-negotiation-in-webrtc/
 [perfect-docs]: https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Perfect_negotiation
 [firebase-listen]: https://firebase.google.com/docs/firestore/query-data/listen
@@ -50,3 +53,4 @@ I started this project in March during my time at bootcamp, right as the world w
 [cognitive-github]: https://github.com/Azure-Samples/cognitive-services-speech-sdk/tree/master/samples/js/browser
 [mapbox-examples]: https://docs.mapbox.com/mapbox.js/example/v1.0.0/
 [skribbl]: https://skribbl.io/
+[portfolio]: https://akimi-yano.github.io/
