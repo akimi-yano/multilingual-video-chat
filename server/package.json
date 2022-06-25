@@ -9,7 +9,7 @@
   "dependencies": {
     "azure-functions-core-tools": "^2.7.1575",
     "cat": "^0.2.0",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.7",
     "package.json": "^2.0.1"
   },
   "devDependencies": {}
